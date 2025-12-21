@@ -189,6 +189,11 @@ export default function SettingsForm() {
                                     placeholder="2.0"
                                     required
                                 />
+                                {formData.max_daily_loss_percent > 5 && (
+                                    <p className="text-xs text-yellow-400">
+                                        ⚠️ Higher than recommended (2-3%)
+                                    </p>
+                                )}
                             </div>
 
                             {/* Profit Target */}
@@ -206,6 +211,11 @@ export default function SettingsForm() {
                                     placeholder="5.0"
                                     required
                                 />
+                                {formData.daily_profit_target_percent > 10 && (
+                                    <p className="text-xs text-yellow-400">
+                                        ⚠️ Unrealistic target can trigger greed. Pros aim for 2-5%
+                                    </p>
+                                )}
                             </div>
                         </div>
 

@@ -22,6 +22,9 @@ BEGIN
   END IF;
 END $$;
 
+-- Add setup_type column for trade tagging
+ALTER TABLE daily_trades ADD COLUMN IF NOT EXISTS setup_type text;
+
 -- Update existing trades to set is_loss based on pnl_amount
 UPDATE daily_trades SET is_loss = (pnl_amount < 0) WHERE is_loss IS NULL;
 

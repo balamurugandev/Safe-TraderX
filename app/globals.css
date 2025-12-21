@@ -10,24 +10,25 @@
 }
 
 :root {
-  /* Lighter, more accessible color palette */
-  --bg-primary: #1a1a24;
-  --bg-secondary: #22222e;
-  --bg-card: #2a2a38;
-  --bg-elevated: #32323f;
+  /* Soft Dark Mode - Navy tones for reduced eye strain */
+  --bg-primary: #0f1117;
+  --bg-secondary: #161922;
+  --bg-card: #1c1f2a;
+  --bg-elevated: #252836;
 
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-visible: rgba(255, 255, 255, 0.15);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-visible: rgba(255, 255, 255, 0.12);
 
-  --text-primary: #f5f5f7;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-primary: #f0f0f5;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 
   --accent-emerald: #10b981;
-  --accent-emerald-soft: rgba(16, 185, 129, 0.15);
+  --accent-emerald-soft: rgba(16, 185, 129, 0.12);
   --accent-red: #ef4444;
-  --accent-red-soft: rgba(239, 68, 68, 0.15);
+  --accent-red-soft: rgba(239, 68, 68, 0.12);
   --accent-blue: #3b82f6;
+  --accent-yellow: #f59e0b;
 }
 
 * {

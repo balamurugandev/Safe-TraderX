@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, TrendingUp, TrendingDown, Lock, Calendar, MessageSquare, X, Timer } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Lock, Calendar, MessageSquare, X, Timer, Tag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import EmotionalChecklist from './EmotionalChecklist';
 
@@ -11,17 +11,34 @@ interface TradeEntryFormProps {
     maxTradesPerDay: number;
     todayTradeCount: number;
     lastLossTime: Date | null;
+    lastTradeTime: Date | null;
     onTradeAdded: () => void;
     disabled: boolean;
     disableReason?: string;
 }
 
 const COOL_OFF_MINUTES = 15;
+const POST_TRADE_PAUSE_MINUTES = 5;
+
+const SETUP_TYPES = [
+    { value: '', label: 'Select Setup...' },
+    { value: 'vwap_bounce', label: 'VWAP Bounce' },
+    { value: 'breakout', label: 'Breakout' },
+    { value: 'breakdown', label: 'Breakdown' },
+    { value: 'mean_reversion', label: 'Mean Reversion' },
+    { value: 'trend_following', label: 'Trend Following' },
+    { value: 'scalp', label: 'Scalp' },
+    { value: 'gap_fill', label: 'Gap Fill' },
+    { value: 'support_resistance', label: 'Support/Resistance' },
+    { value: 'news_based', label: 'News Based' },
+    { value: 'impulse', label: 'Impulse/No Setup ⚠️' },
+];
 
 const getDefaultFormData = () => ({
     trade_name: '',
     pnl_amount: '',
     comments: '',
+    setup_type: '',
     trade_date: new Date().toISOString().split('T')[0],
 });
 
@@ -30,6 +47,7 @@ export default function TradeEntryForm({
     maxTradesPerDay,
     todayTradeCount,
     lastLossTime,
+    lastTradeTime,
     onTradeAdded,
     disabled,
     disableReason
@@ -38,11 +56,12 @@ export default function TradeEntryForm({
     const [formData, setFormData] = useState(getDefaultFormData());
     const [showChecklist, setShowChecklist] = useState(false);
     const [coolOffRemaining, setCoolOffRemaining] = useState(0);
+    const [postTradePauseRemaining, setPostTradePauseRemaining] = useState(0);
 
     const pnlValue = parseFloat(formData.pnl_amount) || 0;
     const pnlPercent = startingCapital > 0 ? (pnlValue / startingCapital) * 100 : 0;
 
-    // Check cool-off timer
+    // Check cool-off timer (after loss)
     useEffect(() => {
         if (!lastLossTime) {
             setCoolOffRemaining(0);
@@ -61,17 +80,27 @@ export default function TradeEntryForm({
         return () => clearInterval(interval);
     }, [lastLossTime]);
 
+    // Check post-trade pause timer
+    useEffect(() => {
+        if (!lastTradeTime) {
+            setPostTradePauseRemaining(0);
+            return;
+        }
+
+        const checkPause = () => {
+            const now = new Date();
+            const pauseEnd = new Date(lastTradeTime.getTime() + POST_TRADE_PAUSE_MINUTES * 60 * 1000);
+            const remaining = Math.max(0, pauseEnd.getTime() - now.getTime());
+            setPostTradePauseRemaining(Math.ceil(remaining / 1000));
+        };
+
+        checkPause();
+        const interval = setInterval(checkPause, 1000);
+        return () => clearInterval(interval);
+    }, [lastTradeTime]);
+
     const handleClear = () => {
         setFormData(getDefaultFormData());
-    };
-
-    // Show checklist before allowing trade entry
-    const handleFormClick = (e: React.MouseEvent) => {
-        // If clicking on the form but checklist hasn't been shown yet
-        if (!showChecklist && !formData.trade_name && !formData.pnl_amount) {
-            e.preventDefault();
-            setShowChecklist(true);
-        }
     };
 
     const handleChecklistContinue = () => {
@@ -80,19 +109,31 @@ export default function TradeEntryForm({
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (disabled || coolOffRemaining > 0) return;
+        if (disabled || coolOffRemaining > 0 || postTradePauseRemaining > 0) return;
+
+        // Validate setup type
+        if (!formData.setup_type) {
+            alert('Please select a setup type');
+            return;
+        }
+
+        // Show checklist on first form submission
+        if (!showChecklist) {
+            setShowChecklist(true);
+            return;
+        }
 
         setLoading(true);
         try {
             const isLoss = pnlValue < 0;
 
-            // Don't include is_loss - let DB compute it or ignore
             const { error } = await supabase
                 .from('daily_trades')
                 .insert({
                     trade_name: formData.trade_name,
                     pnl_amount: pnlValue,
                     comments: formData.comments || null,
+                    setup_type: formData.setup_type,
                     trade_date: formData.trade_date,
                 });
 
@@ -102,6 +143,9 @@ export default function TradeEntryForm({
             if (isLoss) {
                 localStorage.setItem('lastLossTime', new Date().toISOString());
             }
+
+            // Store last trade time for post-trade pause
+            localStorage.setItem('lastTradeTime', new Date().toISOString());
 
             setFormData(getDefaultFormData());
             onTradeAdded();
@@ -122,11 +166,40 @@ export default function TradeEntryForm({
     const tradesRemaining = maxTradesPerDay - todayTradeCount;
     const isMaxTradesReached = tradesRemaining <= 0;
     const isCoolingOff = coolOffRemaining > 0;
+    const isPaused = postTradePauseRemaining > 0;
 
     // Combined disabled state
-    const isFormDisabled = disabled || isMaxTradesReached || isCoolingOff;
+    const isFormDisabled = disabled || isMaxTradesReached || isCoolingOff || isPaused;
 
-    // Cooling off UI
+    // Post-trade pause UI
+    if (isPaused && !isCoolingOff && !disabled && !isMaxTradesReached) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="card p-8 border-blue-500/30"
+            >
+                <div className="text-center space-y-4">
+                    <div className="inline-flex p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                        <Timer className="w-10 h-10 text-blue-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-blue-400">Strategic Pause</h3>
+                        <p className="text-blue-300/60 mt-2 max-w-md mx-auto">
+                            5-minute reflection before your next trade. Use this time to review your last trade and reset your mindset.
+                        </p>
+                    </div>
+                    <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                        <span className="text-blue-400 font-mono text-3xl font-bold">
+                            {formatTime(postTradePauseRemaining)}
+                        </span>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    // Cooling off UI (after loss)
     if (isCoolingOff) {
         return (
             <motion.div
@@ -160,9 +233,13 @@ export default function TradeEntryForm({
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="card card-danger p-8"
+                className="card p-8 relative overflow-hidden"
             >
-                <div className="text-center space-y-4">
+                <div className="absolute inset-0 bg-red-500/5" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <Lock className="w-32 h-32 text-red-500/10" />
+                </div>
+                <div className="relative text-center space-y-4">
                     <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
                         <Lock className="w-10 h-10 text-red-400" />
                     </div>
@@ -178,15 +255,19 @@ export default function TradeEntryForm({
         );
     }
 
-    // Trading locked (P&L limits)
+    // Trading locked (P&L limits) - with overlay
     if (disabled) {
         return (
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="card card-danger p-8"
+                className="card p-8 relative overflow-hidden"
             >
-                <div className="text-center space-y-4">
+                <div className="absolute inset-0 bg-red-500/5" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <Lock className="w-40 h-40 text-red-500/10" />
+                </div>
+                <div className="relative text-center space-y-4">
                     <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
                         <Lock className="w-10 h-10 text-red-400" />
                     </div>
@@ -301,6 +382,31 @@ export default function TradeEntryForm({
                     </div>
                 </div>
 
+                {/* Setup Type */}
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <Tag className="w-4 h-4 text-purple-400" />
+                        <label className="label">Setup Used *</label>
+                    </div>
+                    <select
+                        value={formData.setup_type}
+                        onChange={(e) => setFormData({ ...formData, setup_type: e.target.value })}
+                        className="input"
+                        required
+                    >
+                        {SETUP_TYPES.map(setup => (
+                            <option key={setup.value} value={setup.value}>
+                                {setup.label}
+                            </option>
+                        ))}
+                    </select>
+                    {formData.setup_type === 'impulse' && (
+                        <p className="text-xs text-yellow-400">
+                            ⚠️ Trading without a setup is gambling. Consider stepping away.
+                        </p>
+                    )}
+                </div>
+
                 {/* Comments Field */}
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -342,7 +448,12 @@ export default function TradeEntryForm({
             <EmotionalChecklist
                 isOpen={showChecklist}
                 onClose={() => setShowChecklist(false)}
-                onContinue={handleChecklistContinue}
+                onContinue={() => {
+                    handleChecklistContinue();
+                    // Re-submit after checklist
+                    const fakeEvent = { preventDefault: () => { } } as React.FormEvent;
+                    handleSubmit(fakeEvent);
+                }}
             />
         </>
     );

@@ -287,20 +287,20 @@ export default function HistoryPage() {
                                             </div>
                                         </td>
                                         <td className="table-cell">
-                                            <div className="flex items-center justify-center gap-2">
+                                            <div className="flex items-center justify-center gap-3">
                                                 <button
                                                     onClick={() => handleEdit(trade)}
-                                                    className="p-2 rounded-lg hover:bg-white/10 transition-colors text-blue-400 hover:text-blue-300"
+                                                    className="p-3 rounded-xl hover:bg-blue-500/10 transition-colors text-blue-400 hover:text-blue-300"
                                                     title="Edit trade"
                                                 >
-                                                    <Edit2 className="w-4 h-4" />
+                                                    <Edit2 className="w-5 h-5" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(trade.id)}
-                                                    className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-red-400 hover:text-red-300"
+                                                    className="p-3 rounded-xl hover:bg-red-500/10 transition-colors text-red-400 hover:text-red-300"
                                                     title="Delete trade"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="w-5 h-5" />
                                                 </button>
                                             </div>
                                         </td>

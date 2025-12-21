@@ -55,6 +55,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lastLossTime, setLastLossTime] = useState<Date | null>(null);
+  const [lastTradeTime, setLastTradeTime] = useState<Date | null>(null);
 
   // Update clock every second
   useEffect(() => {
@@ -75,6 +76,18 @@ export default function Dashboard() {
         setLastLossTime(lossTime);
       } else {
         localStorage.removeItem('lastLossTime');
+      }
+    }
+
+    // Check for last trade time (5 min pause)
+    const storedTrade = localStorage.getItem('lastTradeTime');
+    if (storedTrade) {
+      const tradeTime = new Date(storedTrade);
+      const now = new Date();
+      if (now.getTime() - tradeTime.getTime() < 5 * 60 * 1000) {
+        setLastTradeTime(tradeTime);
+      } else {
+        localStorage.removeItem('lastTradeTime');
       }
     }
   }, []);
@@ -342,18 +355,18 @@ export default function Dashboard() {
                 </p>
               </div>
               <div>
-                <p className="text-xs text-zinc-500 mb-1">Brokerage</p>
+                <p className="text-xs text-zinc-500 mb-1">Brokerage + GST</p>
                 <p className="font-mono text-yellow-400">
-                  -₹{brokerageTotal.toLocaleString('en-IN')}
+                  -₹{(brokerageTotal * 1.18).toFixed(0)}
                 </p>
-                <p className="text-[10px] text-zinc-600">{tradeCount} × ₹{settings.brokerage_per_order} × 2</p>
+                <p className="text-[10px] text-zinc-600">{tradeCount} × ₹{settings.brokerage_per_order} × 2 + 18% GST</p>
               </div>
               <div>
-                <p className="text-xs text-zinc-500 mb-1">Est. Taxes</p>
+                <p className="text-xs text-zinc-500 mb-1">STT + Charges</p>
                 <p className="font-mono text-yellow-400">
                   -₹{estimatedTaxes.toFixed(0)}
                 </p>
-                <p className="text-[10px] text-zinc-600">~0.1% STT</p>
+                <p className="text-[10px] text-zinc-600">0.05% STT + Exchange</p>
               </div>
               <div className="bg-white/5 rounded-lg p-2">
                 <p className="text-xs text-zinc-400 mb-1">Net P&L</p>
@@ -397,7 +410,11 @@ export default function Dashboard() {
           maxTradesPerDay={settings.max_trades_per_day}
           todayTradeCount={tradeCount}
           lastLossTime={lastLossTime}
-          onTradeAdded={fetchData}
+          lastTradeTime={lastTradeTime}
+          onTradeAdded={() => {
+            setLastTradeTime(new Date());
+            fetchData();
+          }}
           disabled={isLocked}
           disableReason={disableReason}
         />
