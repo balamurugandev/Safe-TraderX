@@ -129,7 +129,10 @@ export default function TradeEntryForm({
     const handleChecklistSubmit = async (flags: { wasFomo: boolean; wasRevenge: boolean; wasHighProbability: boolean }) => {
         setShowChecklist(false);
 
-        // Store warning for next trade if FOMO or revenge was checked
+        // Warning logic:
+        // - If FOMO or Revenge: ADD warning (or keep existing)
+        // - If High-Probability AND no FOMO/Revenge: CLEAR warning
+        // - Otherwise: Keep existing warning
         if (flags.wasFomo || flags.wasRevenge) {
             const warningMsg = flags.wasFomo && flags.wasRevenge
                 ? 'Your last trade was FOMO + Revenge. Pause and think!'
@@ -137,11 +140,13 @@ export default function TradeEntryForm({
                     ? 'Your last trade was driven by FOMO. Stay disciplined!'
                     : 'Your last trade was revenge trading. Break the cycle!';
             localStorage.setItem('emotionalWarning', warningMsg);
-        } else {
-            // Clear any existing warning if this trade was clean
+            setEmotionalWarning(warningMsg);
+        } else if (flags.wasHighProbability) {
+            // Only clear warning if this was a PROPER high-probability trade
             localStorage.removeItem('emotionalWarning');
             setEmotionalWarning(null);
         }
+        // If not high-probability and not FOMO/revenge, keep existing warning
 
         // Now submit the trade
         setLoading(true);
@@ -347,15 +352,8 @@ export default function TradeEntryForm({
                             <div className="flex-1">
                                 <h3 className="text-red-400 font-bold text-xl uppercase tracking-wide">⚠️ WARNING</h3>
                                 <p className="text-red-300 font-semibold text-lg mt-1">{emotionalWarning}</p>
-                                <p className="text-red-400/70 text-sm mt-2">Stop. Think. Is this trade worth it?</p>
+                                <p className="text-red-400/70 text-sm mt-2">Check &quot;High-Probability Setup&quot; in the reflection to clear this warning.</p>
                             </div>
-                            <button
-                                type="button"
-                                onClick={dismissWarning}
-                                className="p-2 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/30"
-                            >
-                                <X className="w-5 h-5 text-red-400" />
-                            </button>
                         </div>
                     </motion.div>
                 )}

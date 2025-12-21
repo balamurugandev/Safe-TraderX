@@ -295,17 +295,8 @@ export default function Dashboard() {
             <div className="flex-1">
               <h2 className="text-red-300 font-black text-2xl uppercase tracking-wider">⚠️ CAUTION ⚠️</h2>
               <p className="text-white font-bold text-lg mt-1">{emotionalWarning}</p>
-              <p className="text-red-300/80 text-sm mt-2 font-medium">Don&apos;t make the same mistake twice. Trade with discipline.</p>
+              <p className="text-red-300/80 text-sm mt-2 font-medium">This warning clears only after a proper high-probability trade.</p>
             </div>
-            <button
-              onClick={() => {
-                setEmotionalWarning(null);
-                localStorage.removeItem('emotionalWarning');
-              }}
-              className="p-3 hover:bg-red-500/30 rounded-xl transition-colors border border-red-500/50"
-            >
-              <X className="w-6 h-6 text-red-300" />
-            </button>
           </div>
         </motion.div>
       )}
@@ -338,17 +329,17 @@ export default function Dashboard() {
         <QuotesMarquee />
       </motion.div>
 
-      {/* DESKTOP TWO-COLUMN LAYOUT */}
+      {/* DESKTOP THREE-COLUMN LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* LEFT COLUMN - P&L Display & Stats (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* LEFT COLUMN - P&L Display & Stats (4 cols) */}
+        <div className="lg:col-span-4 space-y-6">
           {/* Main P&L Display */}
           <motion.div variants={item}>
             <div className={`card-glow ${grossPnL < 0 ? 'card-danger' : ''} p-8 text-center relative`}>
               <div className="relative z-10">
                 <p className="label mb-3">Today&apos;s Gross P&L</p>
-                <div className={`text-5xl lg:text-6xl font-bold tracking-tighter mb-3 ${grossPnL >= 0 ? 'stat-value-profit' : 'stat-value-loss'}`}>
+                <div className={`text-4xl lg:text-5xl font-bold tracking-tighter mb-3 ${grossPnL >= 0 ? 'stat-value-profit' : 'stat-value-loss'}`}>
                   {grossPnL >= 0 ? '+' : ''}₹{Math.abs(grossPnL).toLocaleString('en-IN')}
                 </div>
                 <div className={`inline-flex badge ${currentPnlPct >= 0 ? 'badge-profit' : 'badge-loss'}`}>
@@ -365,7 +356,7 @@ export default function Dashboard() {
               icon={<Wallet className="w-4 h-4" />}
               label="Capital"
               value={`₹${(settings.starting_capital / 1000).toFixed(0)}K`}
-              subtext={`${tradeCount}/${settings.max_trades_per_day} trades`}
+              subtext={`${tradeCount}/${settings.max_trades_per_day}`}
             />
             <StatCard
               icon={<TrendingDown className="w-4 h-4" />}
@@ -431,7 +422,7 @@ export default function Dashboard() {
                     {isMaxLossReached ? 'MAX LOSS REACHED' : 'TARGET ACHIEVED'}
                   </p>
                   <p className="text-red-300/70 text-xs mt-1">
-                    {isMaxLossReached ? 'Session locked. Protect capital.' : 'Book profits and step away.'}
+                    {isMaxLossReached ? 'Session locked.' : 'Book profits.'}
                   </p>
                 </div>
               </div>
@@ -439,9 +430,8 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* RIGHT COLUMN - Trade Form & Activity (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Trade Entry Form */}
+        {/* MIDDLE COLUMN - Trade Form (4 cols) */}
+        <div className="lg:col-span-4">
           <motion.div variants={item}>
             <TradeEntryForm
               startingCapital={settings.starting_capital}
@@ -457,8 +447,10 @@ export default function Dashboard() {
               disableReason={disableReason}
             />
           </motion.div>
+        </div>
 
-          {/* Trades List */}
+        {/* RIGHT COLUMN - Activity (4 cols) */}
+        <div className="lg:col-span-4">
           <motion.div variants={item} className="space-y-3">
             <div className="flex items-center justify-between px-2">
               <h2 className="label">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}&apos;s Activity</h2>
@@ -467,18 +459,16 @@ export default function Dashboard() {
 
             {trades.length === 0 ? (
               <div className="card p-8 text-center border-dashed">
-                <p className="text-zinc-500">No trades logged in this session</p>
+                <p className="text-zinc-500">No trades logged yet</p>
               </div>
             ) : (
               <div className="table-container">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                   <table className="w-full">
-                    <thead>
+                    <thead className="sticky top-0 bg-[#252836]">
                       <tr>
                         <th className="table-header text-left">Time</th>
                         <th className="table-header text-left">Script</th>
-                        <th className="table-header text-left">Setup</th>
-                        <th className="table-header text-left">Market</th>
                         <th className="table-header text-right">P&L</th>
                       </tr>
                     </thead>
@@ -501,19 +491,12 @@ export default function Dashboard() {
                             </span>
                           </td>
                           <td className="table-cell">
-                            <span className="text-white font-medium">{trade.trade_name}</span>
-                          </td>
-                          <td className="table-cell">
-                            <span className="text-zinc-400 text-sm capitalize">
-                              {trade.setup_type?.replace('_', ' ') || '-'}
-                            </span>
-                          </td>
-                          <td className="table-cell">
-                            <span className={`text-sm capitalize ${trade.market_state === 'sideways' ? 'text-yellow-400' :
-                                (trade.market_state === 'volatile' || trade.market_state === 'choppy') ? 'text-orange-400' : 'text-zinc-400'
-                              }`}>
-                              {trade.market_state || '-'}
-                            </span>
+                            <div>
+                              <span className="text-white font-medium text-sm">{trade.trade_name}</span>
+                              {trade.setup_type && (
+                                <p className="text-zinc-500 text-xs capitalize">{trade.setup_type.replace('_', ' ')}</p>
+                              )}
+                            </div>
                           </td>
                           <td className="table-cell text-right">
                             <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
