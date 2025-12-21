@@ -121,7 +121,7 @@ export default function Dashboard() {
         });
       }
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
       const { data: tradesData } = await supabase
         .from('daily_trades')
         .select('*')
