@@ -60,7 +60,7 @@ export default function QuotesMarquee() {
                     x: {
                         repeat: Infinity,
                         repeatType: "loop",
-                        duration: 120,
+                        duration: 180,
                         ease: "linear",
                     },
                 }}
