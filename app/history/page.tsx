@@ -42,6 +42,7 @@ export default function HistoryPage() {
         trade_date: ''
     });
     const [saving, setSaving] = useState(false);
+    const [deletingTradeId, setDeletingTradeId] = useState<string | null>(null);
 
     const fetchTrades = useCallback(async () => {
         try {
@@ -131,20 +132,26 @@ export default function HistoryPage() {
         }
     };
 
-    const handleDelete = async (tradeId: string) => {
-        if (!confirm('Are you sure you want to delete this trade?')) return;
+    const handleDelete = (tradeId: string) => {
+        setDeletingTradeId(tradeId);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingTradeId) return;
 
         try {
             const { error } = await supabase
                 .from('daily_trades')
                 .delete()
-                .eq('id', tradeId);
+                .eq('id', deletingTradeId);
 
             if (error) throw error;
             fetchTrades();
         } catch (error) {
             console.error('Error deleting trade:', error);
             alert('Failed to delete trade');
+        } finally {
+            setDeletingTradeId(null);
         }
     };
 
@@ -449,6 +456,52 @@ export default function HistoryPage() {
                                         )}
                                     </button>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deletingTradeId && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        style={{ background: 'rgba(0, 0, 0, 0.8)' }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="card p-6 w-full max-w-sm space-y-4"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center border border-red-500/20">
+                                    <Trash2 className="w-6 h-6 text-red-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">Delete Trade?</h3>
+                                    <p className="text-sm text-zinc-500">This action cannot be undone.</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeletingTradeId(null)}
+                                    className="btn-secondary flex-1 justify-center"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 px-4 py-3 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>
