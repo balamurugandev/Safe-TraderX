@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Calendar } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 interface Trade {
     id: string;
@@ -18,12 +19,16 @@ interface EquityCurveProps {
     startingCapital: number;
 }
 
+type TimeRange = '7D' | '30D' | '90D' | 'ALL';
+
 export default function EquityCurve({
     trades,
     brokeragePerTrade,
     maxDrawdownPercent = 10,
     startingCapital
 }: EquityCurveProps) {
+    const [timeRange, setTimeRange] = useState<TimeRange>('30D');
+
     const chartData = useMemo(() => {
         // Sort trades by date
         const sorted = [...trades].sort((a, b) =>
@@ -42,11 +47,12 @@ export default function EquityCurve({
         });
 
         // Convert to array for chart
-        const points = Object.entries(dailyData).map(([date, value]) => ({
+        let points = Object.entries(dailyData).map(([date, value]) => ({
             date,
             value,
-            displayDate: new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-        }));
+            displayDate: new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+            tooltipDate: new Date(date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         // Add start point (0 value) one day before first trade
         if (points.length > 0) {
@@ -57,12 +63,33 @@ export default function EquityCurve({
             points.unshift({
                 date: startDate.toISOString().split('T')[0],
                 value: 0,
-                displayDate: startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                displayDate: startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+                tooltipDate: startDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
             });
         }
 
+        // Filter based on time range
+        if (timeRange !== 'ALL') {
+            const now = new Date();
+            const cutoff = new Date();
+
+            switch (timeRange) {
+                case '7D':
+                    cutoff.setDate(now.getDate() - 7);
+                    break;
+                case '30D':
+                    cutoff.setDate(now.getDate() - 30);
+                    break;
+                case '90D':
+                    cutoff.setMonth(now.getMonth() - 3); // 90 days is roughly 3 months
+                    break;
+            }
+
+            points = points.filter(p => new Date(p.date) >= cutoff);
+        }
+
         return points;
-    }, [trades, brokeragePerTrade]);
+    }, [trades, brokeragePerTrade, timeRange]);
 
     const stats = useMemo(() => {
         if (chartData.length === 0) return null;
@@ -70,7 +97,6 @@ export default function EquityCurve({
         const values = chartData.map(p => p.value);
         const peak = Math.max(...values, 0);
         const current = values[values.length - 1];
-        const lowest = Math.min(...values, 0);
 
         // Calculate max drawdown from peak
         let maxDrawdown = 0;
@@ -87,177 +113,134 @@ export default function EquityCurve({
         return {
             peak,
             current,
-            lowest,
             maxDrawdown,
             drawdownPct,
             isInDrawdown
         };
     }, [chartData, startingCapital, maxDrawdownPercent]);
 
-    if (chartData.length < 2) {
+    if (chartData.length < 1) {
         return null;
     }
 
-    // Calculate chart dimensions
-    const width = 100;
-    const height = 100;
-    const padding = 10;
-
-    const values = chartData.map(p => p.value);
-    const minVal = Math.min(...values, 0);
-    const maxVal = Math.max(...values, 0);
-    const range = maxVal - minVal || 1;
-
-    // Generate SVG path
-    const points = chartData.map((p, i) => {
-        const x = padding + (i / (chartData.length - 1)) * (width - 2 * padding);
-        const y = height - padding - ((p.value - minVal) / range) * (height - 2 * padding);
-        return `${x},${y}`;
-    });
-    const linePath = `M ${points.join(' L ')}`;
-
-    // Zero line Y position
-    const zeroY = height - padding - ((0 - minVal) / range) * (height - 2 * padding);
-
-    // Drawdown threshold line
-    const drawdownThreshold = -(startingCapital * maxDrawdownPercent / 100);
-    const drawdownY = height - padding - ((drawdownThreshold - minVal) / range) * (height - 2 * padding);
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div className="bg-zinc-900 border border-zinc-700 p-3 rounded-lg shadow-xl ring-1 ring-white/10">
+                    <p className="text-zinc-200 text-xs mb-1 font-medium">{data.tooltipDate}</p>
+                    <p className={`font-mono font-bold text-base ${data.value >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {data.value >= 0 ? '+' : ''}₹{data.value.toLocaleString('en-IN')}
+                    </p>
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="card p-6 space-y-4"
+            className="card p-6 space-y-6"
         >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <TrendingUp className="w-5 h-5 text-blue-400" />
-                    <h3 className="font-semibold text-white">Equity Curve (30 days)</h3>
-                </div>
-                {stats && (
-                    <div className="flex items-center gap-4 text-sm">
-                        <div>
-                            <span className="text-zinc-500">Peak: </span>
-                            <span className="text-emerald-400 font-mono">₹{stats.peak.toLocaleString('en-IN')}</span>
-                        </div>
-                        <div>
-                            <span className="text-zinc-500">Drawdown: </span>
-                            <span className={`font-mono ${stats.drawdownPct > 5 ? 'text-red-400' : 'text-zinc-400'}`}>
-                                {stats.drawdownPct.toFixed(1)}%
-                            </span>
-                        </div>
+                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-blue-400" />
                     </div>
-                )}
+                    <div>
+                        <h3 className="font-semibold text-white">Equity Curve</h3>
+                        <p className="text-xs text-zinc-400">Net cumulative P&L over time</p>
+                    </div>
+                </div>
+
+                {/* Range Selector */}
+                <div className="flex bg-zinc-900/50 p-1 rounded-lg border border-white/10">
+                    {(['7D', '30D', '90D', 'ALL'] as TimeRange[]).map((range) => (
+                        <button
+                            key={range}
+                            onClick={() => setTimeRange(range)}
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${timeRange === range
+                                    ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-white/10'
+                                    : 'text-zinc-500 hover:text-white'
+                                }`}
+                        >
+                            {range}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Drawdown Warning */}
-            {stats?.isInDrawdown && (
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3"
-                >
-                    <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                    <div>
-                        <p className="text-red-400 font-semibold">Max Drawdown Exceeded!</p>
-                        <p className="text-red-300/70 text-sm">
-                            Consider a 2-day trading holiday to reset your mindset.
+            <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                        data={chartData}
+                        margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                    >
+                        <defs>
+                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                            </linearGradient>
+                            <linearGradient id="colorValueLoss" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} opacity={0.5} />
+                        <XAxis
+                            dataKey="displayDate"
+                            stroke="#ffffff"
+                            tick={{ fontSize: 11, fill: '#fff', fontWeight: 500 }}
+                            tickLine={false}
+                            axisLine={false}
+                            minTickGap={30}
+                            dy={10}
+                        />
+                        <YAxis
+                            stroke="#ffffff"
+                            tick={{ fontSize: 11, fill: '#fff', fontWeight: 500 }}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => `₹${value}`}
+                            dx={-10}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
+                        <Area
+                            type="monotone"
+                            dataKey="value"
+                            stroke={stats?.current && stats.current >= 0 ? "#10b981" : "#ef4444"}
+                            strokeWidth={3}
+                            fillOpacity={1}
+                            fill={stats?.current && stats.current >= 0 ? "url(#colorValue)" : "url(#colorValueLoss)"}
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Stats Footer */}
+            {stats && (
+                <div className="grid grid-cols-3 gap-4 border-t border-white/5 pt-4">
+                    <div className="text-center">
+                        <p className="text-xs text-zinc-500 mb-1">Current Net P&L</p>
+                        <p className={`font-mono font-bold ${stats.current >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {stats.current >= 0 ? '+' : ''}₹{stats.current.toLocaleString()}
                         </p>
                     </div>
-                </motion.div>
-            )}
-
-            {/* Chart */}
-            <div className="h-40 relative">
-                <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full" preserveAspectRatio="none">
-                    {/* Zero line */}
-                    <line
-                        x1={padding}
-                        y1={zeroY}
-                        x2={width - padding}
-                        y2={zeroY}
-                        stroke="rgba(255,255,255,0.1)"
-                        strokeWidth="0.5"
-                        strokeDasharray="2,2"
-                    />
-
-                    {/* Drawdown threshold line */}
-                    {drawdownY >= 0 && drawdownY <= height && (
-                        <line
-                            x1={padding}
-                            y1={drawdownY}
-                            x2={width - padding}
-                            y2={drawdownY}
-                            stroke="rgba(239,68,68,0.3)"
-                            strokeWidth="0.5"
-                            strokeDasharray="4,2"
-                        />
-                    )}
-
-                    {/* Gradient fill under curve */}
-                    <defs>
-                        <linearGradient id="curveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor={stats?.current && stats.current >= 0 ? 'rgb(16,185,129)' : 'rgb(239,68,68)'} stopOpacity="0.3" />
-                            <stop offset="100%" stopColor={stats?.current && stats.current >= 0 ? 'rgb(16,185,129)' : 'rgb(239,68,68)'} stopOpacity="0" />
-                        </linearGradient>
-                    </defs>
-
-                    {/* Area fill */}
-                    <path
-                        d={`${linePath} L ${width - padding},${zeroY} L ${padding},${zeroY} Z`}
-                        fill="url(#curveGradient)"
-                    />
-
-                    {/* Main line */}
-                    <path
-                        d={linePath}
-                        fill="none"
-                        stroke={stats?.current && stats.current >= 0 ? 'rgb(16,185,129)' : 'rgb(239,68,68)'}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-
-                    {/* Data points */}
-                    {chartData.map((p, i) => {
-                        const x = padding + (i / (chartData.length - 1)) * (width - 2 * padding);
-                        const y = height - padding - ((p.value - minVal) / range) * (height - 2 * padding);
-                        return (
-                            <circle
-                                key={i}
-                                cx={x}
-                                cy={y}
-                                r="1.5"
-                                fill={p.value >= 0 ? 'rgb(16,185,129)' : 'rgb(239,68,68)'}
-                            />
-                        );
-                    })}
-                </svg>
-            </div>
-
-            {/* Legend */}
-            <div className="flex items-center justify-between text-xs text-zinc-500">
-                <span>{chartData[0]?.displayDate}</span>
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                        <div className="w-3 h-0.5 bg-zinc-600" style={{ borderStyle: 'dashed' }} />
-                        <span>Zero Line</span>
+                    <div className="text-center border-l border-white/5">
+                        <p className="text-xs text-zinc-500 mb-1">Peak Equity</p>
+                        <p className="font-mono font-bold text-blue-400">
+                            ₹{stats.peak.toLocaleString()}
+                        </p>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <div className="w-3 h-0.5 bg-red-500/50" style={{ borderStyle: 'dashed' }} />
-                        <span>-{maxDrawdownPercent}% Drawdown</span>
+                    <div className="text-center border-l border-white/5">
+                        <p className="text-xs text-zinc-500 mb-1">Drawdown</p>
+                        <p className={`font-mono font-bold ${stats.drawdownPct > 5 ? 'text-red-400' : 'text-zinc-400'}`}>
+                            {stats.drawdownPct.toFixed(1)}%
+                        </p>
                     </div>
-                </div>
-                <span>{chartData[chartData.length - 1]?.displayDate}</span>
-            </div>
-
-            {/* Current Value */}
-            {stats && (
-                <div className="text-center pt-2 border-t border-white/5">
-                    <p className="text-xs text-zinc-500 mb-1">Current Net Equity</p>
-                    <p className={`text-2xl font-bold font-mono ${stats.current >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {stats.current >= 0 ? '+' : ''}₹{stats.current.toFixed(0).toLocaleString()}
-                    </p>
                 </div>
             )}
         </motion.div>
