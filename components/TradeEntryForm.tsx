@@ -48,7 +48,7 @@ const getDefaultFormData = () => ({
     comments: '',
     setup_type: '',
     market_state: '',
-    trade_date: new Date().toISOString().split('T')[0],
+    trade_date: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
 });
 
 export default function TradeEntryForm({

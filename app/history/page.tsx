@@ -196,23 +196,24 @@ export default function HistoryPage() {
                 </div>
 
                 {/* Date Filter */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 bg-zinc-900/50 p-1.5 rounded-xl border border-white/5">
+                    <span className="text-sm font-medium text-zinc-400 pl-2">Date Filter:</span>
                     <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                         <input
                             type="date"
                             value={dateFilter}
                             onChange={(e) => setDateFilter(e.target.value)}
-                            className="input pl-10 pr-4 py-2 w-44"
-                            placeholder="Filter by date"
+                            className="bg-transparent border-none text-white text-sm focus:ring-0 pl-10 pr-2 py-1 w-40 placeholder-zinc-600"
                         />
                     </div>
                     {dateFilter && (
                         <button
                             onClick={() => setDateFilter('')}
-                            className="btn-secondary py-2 px-4 text-sm"
+                            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                            title="Clear filter"
                         >
-                            Clear
+                            <X className="w-4 h-4 text-zinc-400" />
                         </button>
                     )}
                 </div>
