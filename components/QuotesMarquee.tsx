@@ -4,18 +4,41 @@ import { motion } from 'framer-motion';
 import { Quote } from 'lucide-react';
 
 const TRADING_QUOTES = [
-    { text: "The market is a device for transferring money from the impatient to the patient.", author: "Warren Buffett" },
-    { text: "You don't need to be smarter than the rest. You have to be more disciplined.", author: "Warren Buffett" },
-    { text: "If you can't take a small loss, sooner or later you will take the mother of all losses.", author: "Ed Seykota" },
-    { text: "Amateurs think about how much money they can make. Professionals think about how much they could lose.", author: "Jack Schwager" },
-    { text: "Revenge trading is the fastest way to blow up your account. Step away.", author: "Trading Wisdom" },
-    { text: "Your capital is your ammunition. Don't waste it on low-probability shots.", author: "Trading Wisdom" },
-    { text: "The elements of good trading are: cutting losses, cutting losses, and cutting losses.", author: "Ed Seykota" },
-    { text: "Over-trading and over-leveraging are the two main killers of trading accounts.", author: "Mark Douglas" },
-    { text: "It's not whether you're right or wrong, but how much money you make when you're right.", author: "George Soros" },
-    { text: "The trend is your friend until the end when it bends.", author: "Ed Seykota" },
-    { text: "In trading, you have to be aggressive when you're winning and protective when you're losing.", author: "Larry Hite" },
-    { text: "The biggest risk is not taking any risk at all.", author: "Mark Zuckerberg" },
+    // On Precision & Quick Exits
+    { text: "In scalping, you don't need to be right about the trend; you just need to be right about the next few minutes.", author: "Unknown Scalper" },
+    { text: "The desire to maximize every trade is the enemy of the scalper. Take the meat of the move and leave the bones for someone else.", author: "Martin Schwartz" },
+    { text: "I am a hunter of pips. I don't care about the forest; I care about the rabbit in front of me.", author: "Anonymous Professional Scalper" },
+    { text: "Get in, get out, stay alive.", author: "Mark Weinstein" },
+    { text: "A scalper who holds for a 'big move' is just a trader who is afraid to admit they missed their exit.", author: "Trade Psychology Today" },
+    { text: "The market doesn't pay you to be right; it pays you to be fast when you are wrong.", author: "Naval Ravikant" },
+    { text: "Small wins, repeated consistently, create an unbreakable equity curve.", author: "Alexander Elder" },
+    { text: "Scalping is like surgery: precision matters more than power.", author: "Dr. Brett Steenbarger" },
+    { text: "If the price doesn't do what you expected immediately, get out. The market is telling you your timing is off.", author: "Linda Raschke" },
+    { text: "Don't marry the trade. You are a scalper; it's a one-night stand.", author: "Trading Floor Wisdom" },
+
+    // On the Danger of Over-Scalping
+    { text: "Trading more doesn't make you a better trader; it just makes your broker richer.", author: "Jack Schwager" },
+    { text: "The more trades you take, the more you invite the 'Law of Averages' to take your money back.", author: "Mark Douglas" },
+    { text: "A scalper’s greatest skill is knowing when the market is too noisy to trade.", author: "Bill Lipschutz" },
+    { text: "Overtrading is the result of trying to force the market to give you what it doesn't have.", author: "Alexander Elder" },
+    { text: "Every extra click of the mouse increases the probability of a mistake.", author: "Martin Schwartz" },
+    { text: "If you're scalping and find yourself sweating, you've either taken too many trades or too much size.", author: "Larry Hite" },
+    { text: "Scalpers die by a thousand cuts, usually self-inflicted through overtrading.", author: "Brett Steenbarger" },
+    { text: "The best scalping days are often the ones where you stop after two perfect trades.", author: "Unknown" },
+    { text: "Clicking the button should feel like an obligation, not a thrill.", author: "Mark Douglas" },
+    { text: "In the Indian options market, STT and brokerage are the silent killers of the high-frequency scalper.", author: "Anand Srinivasan" },
+
+    // On Greed & Cutting Losses
+    { text: "If you can't take a small loss, you will eventually take the mother of all losses.", author: "Ed Seykota" },
+    { text: "A stop loss is not a suggestion; it's a command.", author: "Martin Zweig" },
+    { text: "Greed in scalping is waiting for 10 points when your system gave you 4. You usually end up with -2.", author: "Anonymous" },
+    { text: "The moment you feel the urge to 'double up' to recover a loss, close your terminal and walk away.", author: "Paul Tudor Jones" },
+    { text: "You don't have to make it back the same way you lost it.", author: "David Ricardo" },
+    { text: "Successful scalping is 10% strategy and 90% emotional control.", author: "Mark Douglas" },
+    { text: "Accept the loss. The market is not a vending machine; it doesn't owe you a refund.", author: "Yvan Byeajee" },
+    { text: "The market can stay irrational longer than you can stay solvent.", author: "John Maynard Keynes" },
+    { text: "Your job is to protect your capital. The profits will take care of themselves.", author: "Bernard Baruch" },
+    { text: "When in doubt, get out and wait for clarity. The market will be there tomorrow.", author: "Jesse Livermore" },
 ];
 
 export default function QuotesMarquee() {
