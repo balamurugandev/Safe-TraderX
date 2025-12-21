@@ -330,25 +330,33 @@ export default function TradeEntryForm({
                 animate={{ opacity: 1, y: 0 }}
                 className="card p-6 space-y-6"
             >
-                {/* Emotional Warning Banner */}
+                {/* Emotional Warning Banner - PROMINENT */}
                 {emotionalWarning && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="p-6 rounded-2xl bg-gradient-to-r from-red-500/20 via-red-600/20 to-red-500/20 border-2 border-red-500/50 relative overflow-hidden"
                     >
-                        <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1">
-                            <p className="text-red-400 font-medium text-sm">{emotionalWarning}</p>
-                            <p className="text-red-400/60 text-xs mt-1">Take a moment before your next trade.</p>
+                        {/* Pulsing background effect */}
+                        <div className="absolute inset-0 bg-red-500/10 animate-pulse" />
+
+                        <div className="relative flex items-start gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-red-500/30 flex items-center justify-center border border-red-500/50 flex-shrink-0">
+                                <AlertTriangle className="w-8 h-8 text-red-400" />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-red-400 font-bold text-xl uppercase tracking-wide">⚠️ WARNING</h3>
+                                <p className="text-red-300 font-semibold text-lg mt-1">{emotionalWarning}</p>
+                                <p className="text-red-400/70 text-sm mt-2">Stop. Think. Is this trade worth it?</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={dismissWarning}
+                                className="p-2 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/30"
+                            >
+                                <X className="w-5 h-5 text-red-400" />
+                            </button>
                         </div>
-                        <button
-                            type="button"
-                            onClick={dismissWarning}
-                            className="p-1 hover:bg-white/10 rounded transition-colors"
-                        >
-                            <X className="w-4 h-4 text-red-400" />
-                        </button>
                     </motion.div>
                 )}
                 {/* Header */}

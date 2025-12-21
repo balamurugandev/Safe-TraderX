@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import TradeEntryForm from '@/components/TradeEntryForm';
 import PanicButton from '@/components/PanicButton';
 import QuotesMarquee from '@/components/QuotesMarquee';
-import { TrendingUp, TrendingDown, Wallet, AlertOctagon, ArrowRight, Activity, Sparkles, Clock, Flame, Calculator } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, AlertOctagon, ArrowRight, Activity, Sparkles, Clock, Flame, Calculator, AlertTriangle, X } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -58,6 +58,15 @@ export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lastLossTime, setLastLossTime] = useState<Date | null>(null);
   const [lastTradeTime, setLastTradeTime] = useState<Date | null>(null);
+  const [emotionalWarning, setEmotionalWarning] = useState<string | null>(null);
+
+  // Check for emotional warning from localStorage
+  useEffect(() => {
+    const warning = localStorage.getItem('emotionalWarning');
+    if (warning) {
+      setEmotionalWarning(warning);
+    }
+  }, []);
 
   // Update clock every second
   useEffect(() => {
@@ -270,6 +279,37 @@ export default function Dashboard() {
       animate="show"
       className="space-y-6 pb-28 pt-20"
     >
+      {/* GLOBAL EMOTIONAL WARNING - TOP OF PAGE */}
+      {emotionalWarning && (
+        <motion.div
+          variants={item}
+          className="p-6 rounded-2xl bg-gradient-to-r from-red-600/30 via-red-500/20 to-red-600/30 border-2 border-red-500 relative overflow-hidden shadow-[0_0_50px_rgba(239,68,68,0.3)]"
+        >
+          {/* Animated warning stripes */}
+          <div className="absolute inset-0 opacity-10 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(239,68,68,0.3)_10px,rgba(239,68,68,0.3)_20px)]" />
+
+          <div className="relative flex items-center gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-red-500 flex items-center justify-center animate-pulse flex-shrink-0">
+              <AlertTriangle className="w-9 h-9 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-red-300 font-black text-2xl uppercase tracking-wider">⚠️ CAUTION ⚠️</h2>
+              <p className="text-white font-bold text-lg mt-1">{emotionalWarning}</p>
+              <p className="text-red-300/80 text-sm mt-2 font-medium">Don&apos;t make the same mistake twice. Trade with discipline.</p>
+            </div>
+            <button
+              onClick={() => {
+                setEmotionalWarning(null);
+                localStorage.removeItem('emotionalWarning');
+              }}
+              className="p-3 hover:bg-red-500/30 rounded-xl transition-colors border border-red-500/50"
+            >
+              <X className="w-6 h-6 text-red-300" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Date/Time Header */}
       <motion.div variants={item} className="flex items-center justify-between">
         <div>
@@ -475,7 +515,7 @@ export default function Dashboard() {
                       </td>
                       <td className="table-cell">
                         <span className={`text-sm capitalize ${trade.market_state === 'sideways' ? 'text-yellow-400' :
-                            (trade.market_state === 'volatile' || trade.market_state === 'choppy') ? 'text-orange-400' : 'text-zinc-400'
+                          (trade.market_state === 'volatile' || trade.market_state === 'choppy') ? 'text-orange-400' : 'text-zinc-400'
                           }`}>
                           {trade.market_state || '-'}
                         </span>
