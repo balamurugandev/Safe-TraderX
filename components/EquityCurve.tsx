@@ -48,6 +48,19 @@ export default function EquityCurve({
             displayDate: new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
         }));
 
+        // Add start point (0 value) one day before first trade
+        if (points.length > 0) {
+            const firstDate = new Date(points[0].date);
+            const startDate = new Date(firstDate);
+            startDate.setDate(startDate.getDate() - 1);
+
+            points.unshift({
+                date: startDate.toISOString().split('T')[0],
+                value: 0,
+                displayDate: startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+            });
+        }
+
         return points;
     }, [trades, brokeragePerTrade]);
 
