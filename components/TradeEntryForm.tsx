@@ -248,9 +248,9 @@ export default function TradeEntryForm({
                 animate={{ opacity: 1, scale: 1 }}
                 className="card p-8 relative overflow-hidden"
             >
-                <div className="absolute inset-0 bg-red-500/5" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <Lock className="w-32 h-32 text-red-500/10" />
+                {/* Subtle blurred background lock */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
+                    <Lock className="w-48 h-48 text-red-400 blur-sm" />
                 </div>
                 <div className="relative text-center space-y-4">
                     <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
@@ -268,7 +268,7 @@ export default function TradeEntryForm({
         );
     }
 
-    // Trading locked (P&L limits) - with overlay
+    // Trading locked (P&L limits) - with subtle overlay
     if (disabled) {
         return (
             <motion.div
@@ -276,9 +276,9 @@ export default function TradeEntryForm({
                 animate={{ opacity: 1, scale: 1 }}
                 className="card p-8 relative overflow-hidden"
             >
-                <div className="absolute inset-0 bg-red-500/5" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <Lock className="w-40 h-40 text-red-500/10" />
+                {/* Subtle blurred background lock */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
+                    <Lock className="w-48 h-48 text-red-400 blur-sm" />
                 </div>
                 <div className="relative text-center space-y-4">
                     <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20">

@@ -23,6 +23,8 @@ interface Trade {
   trade_name: string;
   pnl_amount: number;
   comments?: string;
+  setup_type?: string;
+  market_state?: string;
   is_loss?: boolean;
   created_at: string;
 }
@@ -432,31 +434,65 @@ export default function Dashboard() {
             <p className="text-zinc-500">No trades logged in this session</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {trades.map((trade, i) => (
-              <motion.div
-                key={trade.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="card p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${trade.pnl_amount >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                  <div>
-                    <span className="font-medium text-zinc-200 group-hover:text-white transition-colors">
-                      {trade.trade_name}
-                    </span>
-                    {trade.comments && (
-                      <p className="text-xs text-zinc-500 mt-0.5">{trade.comments}</p>
-                    )}
-                  </div>
-                </div>
-                <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {trade.pnl_amount >= 0 ? '+' : ''}₹{trade.pnl_amount.toLocaleString('en-IN')}
-                </span>
-              </motion.div>
-            ))}
+          <div className="table-container">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="table-header text-left">Time</th>
+                    <th className="table-header text-left">Script</th>
+                    <th className="table-header text-left">Setup</th>
+                    <th className="table-header text-left">Market</th>
+                    <th className="table-header text-left">Comments</th>
+                    <th className="table-header text-right">P&L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trades.map((trade, i) => (
+                    <motion.tr
+                      key={trade.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.03 }}
+                      className="table-row"
+                    >
+                      <td className="table-cell">
+                        <span className="text-zinc-400 text-sm">
+                          {new Date(trade.created_at).toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          })}
+                        </span>
+                      </td>
+                      <td className="table-cell">
+                        <span className="text-white font-medium">{trade.trade_name}</span>
+                      </td>
+                      <td className="table-cell">
+                        <span className="text-zinc-400 text-sm capitalize">
+                          {trade.setup_type?.replace('_', ' ') || '-'}
+                        </span>
+                      </td>
+                      <td className="table-cell">
+                        <span className={`text-sm capitalize ${trade.market_state === 'sideways' ? 'text-yellow-400' :
+                          trade.market_state === 'volatile' ? 'text-orange-400' : 'text-zinc-400'
+                          }`}>
+                          {trade.market_state || '-'}
+                        </span>
+                      </td>
+                      <td className="table-cell">
+                        <span className="text-zinc-500 text-sm">{trade.comments || '-'}</span>
+                      </td>
+                      <td className="table-cell text-right">
+                        <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {trade.pnl_amount >= 0 ? '+' : ''}₹{trade.pnl_amount.toLocaleString('en-IN')}
+                        </span>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </motion.div>
