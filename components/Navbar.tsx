@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Settings, Zap } from 'lucide-react';
+import { LayoutDashboard, Settings, History, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Navbar() {
@@ -14,7 +14,7 @@ export default function Navbar() {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="nav-float flex items-center gap-2 px-3 py-2"
+                className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-[#22222e]/90 backdrop-blur-xl border border-white/10 shadow-lg"
             >
                 {/* Logo */}
                 <Link
@@ -36,6 +36,12 @@ export default function Navbar() {
                     icon={<LayoutDashboard className="w-4 h-4" />}
                     label="Dashboard"
                     active={pathname === '/'}
+                />
+                <NavLink
+                    href="/history"
+                    icon={<History className="w-4 h-4" />}
+                    label="History"
+                    active={pathname === '/history'}
                 />
                 <NavLink
                     href="/settings"

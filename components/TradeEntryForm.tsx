@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, TrendingUp, TrendingDown, AlertTriangle, Lock } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Lock, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface TradeEntryFormProps {
@@ -16,6 +16,7 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
     const [formData, setFormData] = useState({
         trade_name: '',
         pnl_amount: '',
+        trade_date: new Date().toISOString().split('T')[0], // Default to today
     });
 
     const pnlValue = parseFloat(formData.pnl_amount) || 0;
@@ -32,12 +33,16 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
                 .insert({
                     trade_name: formData.trade_name,
                     pnl_amount: pnlValue,
-                    trade_date: new Date().toISOString().split('T')[0],
+                    trade_date: formData.trade_date,
                 });
 
             if (error) throw error;
 
-            setFormData({ trade_name: '', pnl_amount: '' });
+            setFormData({
+                trade_name: '',
+                pnl_amount: '',
+                trade_date: new Date().toISOString().split('T')[0],
+            });
             onTradeAdded();
         } catch (error) {
             console.error('Error adding trade:', error);
@@ -52,10 +57,9 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
             <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative overflow-hidden rounded-2xl border border-red-500/30 bg-gradient-to-br from-red-500/10 to-red-600/5 p-8"
+                className="card card-danger p-8"
             >
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(239,68,68,0.15),transparent_50%)]" />
-                <div className="relative z-10 text-center space-y-4">
+                <div className="text-center space-y-4">
                     <div className="inline-flex p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
                         <Lock className="w-10 h-10 text-red-400" />
                     </div>
@@ -80,8 +84,8 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10">
-                        <Plus className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 flex items-center justify-center border border-emerald-500/20">
+                        <Plus className="w-5 h-5 text-emerald-400" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-white">Log Trade</h3>
@@ -102,10 +106,25 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
                 )}
             </div>
 
-            {/* Form Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-                {/* Script Name - Takes 3 columns */}
-                <div className="sm:col-span-3 space-y-2">
+            {/* Form Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
+                {/* Date Picker */}
+                <div className="sm:col-span-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-blue-400" />
+                        <label className="label">Trade Date</label>
+                    </div>
+                    <input
+                        type="date"
+                        value={formData.trade_date}
+                        onChange={(e) => setFormData({ ...formData, trade_date: e.target.value })}
+                        className="input"
+                        required
+                    />
+                </div>
+
+                {/* Script Name */}
+                <div className="sm:col-span-2 space-y-2">
                     <label className="label">Script / Instrument</label>
                     <input
                         type="text"
@@ -117,7 +136,7 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
                     />
                 </div>
 
-                {/* P&L - Takes 2 columns */}
+                {/* P&L */}
                 <div className="sm:col-span-2 space-y-2">
                     <label className="label">P&L Amount (₹)</label>
                     <div className="relative">
@@ -146,7 +165,7 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
                 whileTap={{ scale: 0.99 }}
                 type="submit"
                 disabled={loading}
-                className="btn-secondary w-full flex items-center justify-center gap-2"
+                className="btn-primary w-full flex items-center justify-center gap-2"
             >
                 {loading ? (
                     <>
