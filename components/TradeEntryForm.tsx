@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, TrendingUp, TrendingDown, Lock, Calendar, MessageSquare, X, Timer, Tag } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Lock, Calendar, MessageSquare, X, Timer, Tag, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import EmotionalChecklist from './EmotionalChecklist';
 
@@ -66,6 +66,15 @@ export default function TradeEntryForm({
     const [showChecklist, setShowChecklist] = useState(false);
     const [coolOffRemaining, setCoolOffRemaining] = useState(0);
     const [postTradePauseRemaining, setPostTradePauseRemaining] = useState(0);
+    const [emotionalWarning, setEmotionalWarning] = useState<string | null>(null);
+
+    // Check for emotional warnings from last trade
+    useEffect(() => {
+        const warning = localStorage.getItem('emotionalWarning');
+        if (warning) {
+            setEmotionalWarning(warning);
+        }
+    }, []);
 
     const pnlValue = parseFloat(formData.pnl_amount) || 0;
     const pnlPercent = startingCapital > 0 ? (pnlValue / startingCapital) * 100 : 0;
@@ -112,30 +121,29 @@ export default function TradeEntryForm({
         setFormData(getDefaultFormData());
     };
 
-    const handleChecklistContinue = () => {
-        setShowChecklist(false);
+    const dismissWarning = () => {
+        setEmotionalWarning(null);
+        localStorage.removeItem('emotionalWarning');
     };
 
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        if (disabled || coolOffRemaining > 0 || postTradePauseRemaining > 0) return;
+    const handleChecklistSubmit = async (flags: { wasFomo: boolean; wasRevenge: boolean; wasHighProbability: boolean }) => {
+        setShowChecklist(false);
 
-        // Validate setup type and market state
-        if (!formData.setup_type) {
-            alert('Please select a setup type');
-            return;
-        }
-        if (!formData.market_state) {
-            alert('Please select market state');
-            return;
-        }
-
-        // Show checklist on first form submission
-        if (!showChecklist) {
-            setShowChecklist(true);
-            return;
+        // Store warning for next trade if FOMO or revenge was checked
+        if (flags.wasFomo || flags.wasRevenge) {
+            const warningMsg = flags.wasFomo && flags.wasRevenge
+                ? 'Your last trade was FOMO + Revenge. Pause and think!'
+                : flags.wasFomo
+                    ? 'Your last trade was driven by FOMO. Stay disciplined!'
+                    : 'Your last trade was revenge trading. Break the cycle!';
+            localStorage.setItem('emotionalWarning', warningMsg);
+        } else {
+            // Clear any existing warning if this trade was clean
+            localStorage.removeItem('emotionalWarning');
+            setEmotionalWarning(null);
         }
 
+        // Now submit the trade
         setLoading(true);
         try {
             const isLoss = pnlValue < 0;
@@ -169,6 +177,24 @@ export default function TradeEntryForm({
         } finally {
             setLoading(false);
         }
+    };
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        if (disabled || coolOffRemaining > 0 || postTradePauseRemaining > 0) return;
+
+        // Validate setup type and market state
+        if (!formData.setup_type) {
+            alert('Please select a setup type');
+            return;
+        }
+        if (!formData.market_state) {
+            alert('Please select market state');
+            return;
+        }
+
+        // Always show checklist for trade reflection
+        setShowChecklist(true);
     }
 
     const formatTime = (seconds: number) => {
@@ -304,6 +330,27 @@ export default function TradeEntryForm({
                 animate={{ opacity: 1, y: 0 }}
                 className="card p-6 space-y-6"
             >
+                {/* Emotional Warning Banner */}
+                {emotionalWarning && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-start gap-3"
+                    >
+                        <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                            <p className="text-red-400 font-medium text-sm">{emotionalWarning}</p>
+                            <p className="text-red-400/60 text-xs mt-1">Take a moment before your next trade.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={dismissWarning}
+                            className="p-1 hover:bg-white/10 rounded transition-colors"
+                        >
+                            <X className="w-4 h-4 text-red-400" />
+                        </button>
+                    </motion.div>
+                )}
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -486,12 +533,7 @@ export default function TradeEntryForm({
             <EmotionalChecklist
                 isOpen={showChecklist}
                 onClose={() => setShowChecklist(false)}
-                onContinue={() => {
-                    handleChecklistContinue();
-                    // Re-submit after checklist
-                    const fakeEvent = { preventDefault: () => { } } as React.FormEvent;
-                    handleSubmit(fakeEvent);
-                }}
+                onContinue={handleChecklistSubmit}
             />
         </>
     );
