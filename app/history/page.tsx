@@ -2,21 +2,32 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { History, TrendingUp, TrendingDown, Calendar, ArrowUpDown, Filter, Edit2, Trash2, X, Save } from 'lucide-react';
+import { History, TrendingUp, TrendingDown, Calendar, ArrowUpDown, Filter, Edit2, Trash2, X, Save, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import EquityCurve from '@/components/EquityCurve';
 
 interface Trade {
     id: string;
     trade_name: string;
     pnl_amount: number;
     comments?: string;
+    setup_type?: string;
+    market_state?: string;
     trade_date: string;
     created_at: string;
     cumulative?: number;
 }
 
+interface Settings {
+    starting_capital: number;
+    brokerage_per_order: number;
+    max_lot_size: number;
+    lot_value: number;
+}
+
 export default function HistoryPage() {
     const [trades, setTrades] = useState<Trade[]>([]);
+    const [settings, setSettings] = useState<Settings | null>(null);
     const [loading, setLoading] = useState(true);
     const [sortField, setSortField] = useState<'trade_date' | 'pnl_amount'>('trade_date');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -34,6 +45,22 @@ export default function HistoryPage() {
 
     const fetchTrades = useCallback(async () => {
         try {
+            // Fetch settings
+            const { data: settingsData } = await supabase
+                .from('settings')
+                .select('*')
+                .single();
+
+            if (settingsData) {
+                setSettings({
+                    starting_capital: settingsData.starting_capital || 100000,
+                    brokerage_per_order: settingsData.brokerage_per_order || 20,
+                    max_lot_size: settingsData.max_lot_size || 50,
+                    lot_value: settingsData.lot_value || 50,
+                });
+            }
+
+            // Fetch trades
             let query = supabase
                 .from('daily_trades')
                 .select('*')
@@ -205,6 +232,16 @@ export default function HistoryPage() {
                     </p>
                 </div>
             </div>
+
+            {/* Equity Curve Chart */}
+            {settings && trades.length >= 2 && (
+                <EquityCurve
+                    trades={trades}
+                    brokeragePerTrade={settings.brokerage_per_order}
+                    startingCapital={settings.starting_capital}
+                    maxDrawdownPercent={10}
+                />
+            )}
 
             {/* Trades Table */}
             {trades.length === 0 ? (

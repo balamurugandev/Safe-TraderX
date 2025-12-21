@@ -12,6 +12,14 @@ ALTER TABLE settings ADD COLUMN IF NOT EXISTS brokerage_per_order numeric DEFAUL
 ALTER TABLE settings ADD COLUMN IF NOT EXISTS current_streak int DEFAULT 0;
 ALTER TABLE settings ADD COLUMN IF NOT EXISTS last_streak_date date;
 
+-- Lot sizing columns
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS max_lot_size int DEFAULT 50;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS lot_value numeric DEFAULT 50;
+
+-- Penalty tracking
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS penalty_active boolean DEFAULT false;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS last_incident_report text;
+
 -- Add is_loss column to trades (computed from pnl_amount)
 -- Note: If this fails, the column may already exist or your Postgres version doesn't support GENERATED columns
 -- In that case, we'll compute is_loss in the application
@@ -24,6 +32,9 @@ END $$;
 
 -- Add setup_type column for trade tagging
 ALTER TABLE daily_trades ADD COLUMN IF NOT EXISTS setup_type text;
+
+-- Add market_state column for market condition tracking
+ALTER TABLE daily_trades ADD COLUMN IF NOT EXISTS market_state text;
 
 -- Update existing trades to set is_loss based on pnl_amount
 UPDATE daily_trades SET is_loss = (pnl_amount < 0) WHERE is_loss IS NULL;

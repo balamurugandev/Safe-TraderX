@@ -34,11 +34,19 @@ const SETUP_TYPES = [
     { value: 'impulse', label: 'Impulse/No Setup ⚠️' },
 ];
 
+const MARKET_STATES = [
+    { value: '', label: 'Select Market State...' },
+    { value: 'trending', label: '📈 Trending' },
+    { value: 'sideways', label: '➡️ Sideways/Range' },
+    { value: 'volatile', label: '⚡ Volatile/Choppy' },
+];
+
 const getDefaultFormData = () => ({
     trade_name: '',
     pnl_amount: '',
     comments: '',
     setup_type: '',
+    market_state: '',
     trade_date: new Date().toISOString().split('T')[0],
 });
 
@@ -111,9 +119,13 @@ export default function TradeEntryForm({
         e.preventDefault();
         if (disabled || coolOffRemaining > 0 || postTradePauseRemaining > 0) return;
 
-        // Validate setup type
+        // Validate setup type and market state
         if (!formData.setup_type) {
             alert('Please select a setup type');
+            return;
+        }
+        if (!formData.market_state) {
+            alert('Please select market state');
             return;
         }
 
@@ -134,6 +146,7 @@ export default function TradeEntryForm({
                     pnl_amount: pnlValue,
                     comments: formData.comments || null,
                     setup_type: formData.setup_type,
+                    market_state: formData.market_state,
                     trade_date: formData.trade_date,
                 });
 
@@ -383,28 +396,52 @@ export default function TradeEntryForm({
                 </div>
 
                 {/* Setup Type */}
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4 text-purple-400" />
-                        <label className="label">Setup Used *</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Tag className="w-4 h-4 text-purple-400" />
+                            <label className="label">Setup Used *</label>
+                        </div>
+                        <select
+                            value={formData.setup_type}
+                            onChange={(e) => setFormData({ ...formData, setup_type: e.target.value })}
+                            className="input"
+                            required
+                        >
+                            {SETUP_TYPES.map(setup => (
+                                <option key={setup.value} value={setup.value}>
+                                    {setup.label}
+                                </option>
+                            ))}
+                        </select>
+                        {formData.setup_type === 'impulse' && (
+                            <p className="text-xs text-yellow-400">
+                                ⚠️ Trading without a setup is gambling.
+                            </p>
+                        )}
                     </div>
-                    <select
-                        value={formData.setup_type}
-                        onChange={(e) => setFormData({ ...formData, setup_type: e.target.value })}
-                        className="input"
-                        required
-                    >
-                        {SETUP_TYPES.map(setup => (
-                            <option key={setup.value} value={setup.value}>
-                                {setup.label}
-                            </option>
-                        ))}
-                    </select>
-                    {formData.setup_type === 'impulse' && (
-                        <p className="text-xs text-yellow-400">
-                            ⚠️ Trading without a setup is gambling. Consider stepping away.
-                        </p>
-                    )}
+
+                    {/* Market State */}
+                    <div className="space-y-2">
+                        <label className="label">Market State *</label>
+                        <select
+                            value={formData.market_state}
+                            onChange={(e) => setFormData({ ...formData, market_state: e.target.value })}
+                            className="input"
+                            required
+                        >
+                            {MARKET_STATES.map(state => (
+                                <option key={state.value} value={state.value}>
+                                    {state.label}
+                                </option>
+                            ))}
+                        </select>
+                        {formData.market_state === 'sideways' && (
+                            <p className="text-xs text-yellow-400">
+                                ⚠️ Sideways markets often lead to losses. Be cautious.
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 {/* Comments Field */}

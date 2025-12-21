@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Save, CheckCircle2, AlertCircle, Wallet, TrendingDown, TrendingUp, Hash, IndianRupee, Flame } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Wallet, TrendingDown, TrendingUp, Hash, IndianRupee, Flame, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SettingsForm() {
@@ -16,6 +16,8 @@ export default function SettingsForm() {
         daily_profit_target_percent: 5,
         max_trades_per_day: 10,
         brokerage_per_order: 20,
+        max_lot_size: 50,
+        lot_value: 50,
     });
 
     const [streak, setStreak] = useState(0);
@@ -40,6 +42,8 @@ export default function SettingsForm() {
                     daily_profit_target_percent: data.daily_profit_target_percent || 5,
                     max_trades_per_day: data.max_trades_per_day || 10,
                     brokerage_per_order: data.brokerage_per_order || 20,
+                    max_lot_size: data.max_lot_size || 50,
+                    lot_value: data.lot_value || 50,
                 });
                 setStreak(data.current_streak || 0);
             }
@@ -251,6 +255,43 @@ export default function SettingsForm() {
                                     placeholder="20"
                                     required
                                 />
+                            </div>
+                        </div>
+
+                        {/* Lot Sizing - Row 3 */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Max Lot Size */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Package className="w-4 h-4 text-orange-400" />
+                                    <label className="label">Max Lots/Trade</label>
+                                </div>
+                                <input
+                                    type="number"
+                                    value={formData.max_lot_size || ''}
+                                    onChange={(e) => setFormData({ ...formData, max_lot_size: parseInt(e.target.value) || 50 })}
+                                    className="input"
+                                    placeholder="50"
+                                    required
+                                />
+                                <p className="text-[10px] text-zinc-600">Max position size per trade</p>
+                            </div>
+
+                            {/* Lot Value */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <IndianRupee className="w-4 h-4 text-orange-400" />
+                                    <label className="label">Point Value (₹)</label>
+                                </div>
+                                <input
+                                    type="number"
+                                    value={formData.lot_value || ''}
+                                    onChange={(e) => setFormData({ ...formData, lot_value: parseFloat(e.target.value) || 50 })}
+                                    className="input"
+                                    placeholder="50"
+                                    required
+                                />
+                                <p className="text-[10px] text-zinc-600">1 lot × 1 point (Nifty = ₹50)</p>
                             </div>
                         </div>
                     </div>
