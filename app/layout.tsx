@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-zinc-950 text-zinc-100 min-h-screen flex flex-col`}>
         <Navbar />
-        <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 lg:px-8 py-8">
           {children}
         </main>
       </body>

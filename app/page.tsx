@@ -338,204 +338,198 @@ export default function Dashboard() {
         <QuotesMarquee />
       </motion.div>
 
-      {/* Stats Grid */}
-      <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard
-          icon={<Wallet className="w-5 h-5" />}
-          label="Starting Capital"
-          value={`₹${settings.starting_capital.toLocaleString('en-IN')}`}
-          subtext={`${tradeCount}/${settings.max_trades_per_day} trades`}
-        />
-        <StatCard
-          icon={<TrendingDown className="w-5 h-5" />}
-          label="Max Daily Loss"
-          value={`${settings.max_daily_loss_percent}%`}
-          subtext={`₹${maxLossAmount.toLocaleString('en-IN')}`}
-          variant="danger"
-        />
-        <StatCard
-          icon={<TrendingUp className="w-5 h-5" />}
-          label="Profit Target"
-          value={`${settings.daily_profit_target_percent}%`}
-          subtext={`₹${profitTargetAmount.toLocaleString('en-IN')}`}
-          variant="success"
-        />
-      </motion.div>
+      {/* DESKTOP TWO-COLUMN LAYOUT */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      {/* Main P&L Display */}
-      <motion.div variants={item}>
-        <div className={`card-glow ${grossPnL < 0 ? 'card-danger' : ''} p-8 sm:p-12 text-center relative`}>
-          <div className="relative z-10">
-            <p className="label mb-4">Today&apos;s Gross P&L</p>
-
-            <div className={`text-5xl sm:text-7xl md:text-8xl font-bold tracking-tighter mb-4 ${grossPnL >= 0 ? 'stat-value-profit' : 'stat-value-loss'}`}>
-              {grossPnL >= 0 ? '+' : ''}₹{Math.abs(grossPnL).toLocaleString('en-IN')}
-            </div>
-
-            <div className={`inline-flex badge ${currentPnlPct >= 0 ? 'badge-profit' : 'badge-loss'}`}>
-              {currentPnlPct >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-              {currentPnlPct >= 0 ? '+' : ''}{currentPnlPct.toFixed(2)}%
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Net P&L Calculator */}
-      {tradeCount > 0 && (
-        <motion.div variants={item}>
-          <div className="card p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Calculator className="w-5 h-5 text-blue-400" />
-              <h3 className="font-semibold text-white">Brokerage & Tax Estimate</h3>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-xs text-zinc-400 mb-1">Gross P&L</p>
-                <p className={`font-mono font-bold ${grossPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {grossPnL >= 0 ? '+' : ''}₹{grossPnL.toLocaleString('en-IN')}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-zinc-400 mb-1">Brokerage + GST</p>
-                <p className="font-mono text-yellow-400">
-                  -₹{(brokerageTotal * 1.18).toFixed(0)}
-                </p>
-                <p className="text-[10px] text-zinc-600">{tradeCount} × ₹{settings.brokerage_per_order} × 2 + 18% GST</p>
-              </div>
-              <div>
-                <p className="text-xs text-zinc-400 mb-1">STT + Charges</p>
-                <p className="font-mono text-yellow-400">
-                  -₹{estimatedTaxes.toFixed(0)}
-                </p>
-                <p className="text-[10px] text-zinc-600">0.05% STT + Exchange</p>
-              </div>
-              <div className="bg-white/5 rounded-lg p-2">
-                <p className="text-xs text-zinc-400 mb-1">Net P&L</p>
-                <p className={`font-mono font-bold text-lg ${netPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {netPnL >= 0 ? '+' : ''}₹{netPnL.toFixed(0)}
-                </p>
+        {/* LEFT COLUMN - P&L Display & Stats (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Main P&L Display */}
+          <motion.div variants={item}>
+            <div className={`card-glow ${grossPnL < 0 ? 'card-danger' : ''} p-8 text-center relative`}>
+              <div className="relative z-10">
+                <p className="label mb-3">Today&apos;s Gross P&L</p>
+                <div className={`text-5xl lg:text-6xl font-bold tracking-tighter mb-3 ${grossPnL >= 0 ? 'stat-value-profit' : 'stat-value-loss'}`}>
+                  {grossPnL >= 0 ? '+' : ''}₹{Math.abs(grossPnL).toLocaleString('en-IN')}
+                </div>
+                <div className={`inline-flex badge ${currentPnlPct >= 0 ? 'badge-profit' : 'badge-loss'}`}>
+                  {currentPnlPct >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {currentPnlPct >= 0 ? '+' : ''}{currentPnlPct.toFixed(2)}%
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
 
-      {/* Kill Switch Warning */}
-      {isLocked && (
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="relative overflow-hidden rounded-2xl border border-red-500/30 bg-red-500/10 p-6"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent" />
-          <div className="relative flex items-center justify-center gap-4 text-center">
-            <AlertOctagon className="w-8 h-8 text-red-400 animate-pulse flex-shrink-0" />
-            <div>
-              <p className="text-red-400 font-bold text-xl">
-                {isMaxLossReached ? 'MAXIMUM LOSS LIMIT REACHED' : 'PROFIT TARGET ACHIEVED'}
-              </p>
-              <p className="text-red-300/70 text-sm mt-1">
-                {isMaxLossReached
-                  ? 'Trading session locked. Protect your remaining capital.'
-                  : 'Congratulations! Book your profits and step away.'}
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      )}
+          {/* Stats Grid */}
+          <motion.div variants={item} className="grid grid-cols-3 gap-3">
+            <StatCard
+              icon={<Wallet className="w-4 h-4" />}
+              label="Capital"
+              value={`₹${(settings.starting_capital / 1000).toFixed(0)}K`}
+              subtext={`${tradeCount}/${settings.max_trades_per_day} trades`}
+            />
+            <StatCard
+              icon={<TrendingDown className="w-4 h-4" />}
+              label="Max Loss"
+              value={`${settings.max_daily_loss_percent}%`}
+              subtext={`₹${maxLossAmount.toLocaleString('en-IN')}`}
+              variant="danger"
+            />
+            <StatCard
+              icon={<TrendingUp className="w-4 h-4" />}
+              label="Target"
+              value={`${settings.daily_profit_target_percent}%`}
+              subtext={`₹${profitTargetAmount.toLocaleString('en-IN')}`}
+              variant="success"
+            />
+          </motion.div>
 
-      {/* Trade Entry Form */}
-      <motion.div variants={item}>
-        <TradeEntryForm
-          startingCapital={settings.starting_capital}
-          maxTradesPerDay={settings.max_trades_per_day}
-          todayTradeCount={tradeCount}
-          lastLossTime={lastLossTime}
-          lastTradeTime={lastTradeTime}
-          onTradeAdded={() => {
-            setLastTradeTime(new Date());
-            fetchData();
-          }}
-          disabled={isLocked}
-          disableReason={disableReason}
-        />
-      </motion.div>
+          {/* Net P&L Calculator */}
+          {tradeCount > 0 && (
+            <motion.div variants={item}>
+              <div className="card p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Calculator className="w-4 h-4 text-blue-400" />
+                  <h3 className="font-semibold text-white text-sm">Brokerage & Tax</h3>
+                </div>
+                <div className="grid grid-cols-4 gap-3 text-center text-sm">
+                  <div>
+                    <p className="text-[10px] text-zinc-400 mb-1">Gross</p>
+                    <p className={`font-mono font-bold ${grossPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {grossPnL >= 0 ? '+' : ''}₹{grossPnL.toLocaleString('en-IN')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-zinc-400 mb-1">Brokerage</p>
+                    <p className="font-mono text-yellow-400">-₹{(brokerageTotal * 1.18).toFixed(0)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-zinc-400 mb-1">STT</p>
+                    <p className="font-mono text-yellow-400">-₹{estimatedTaxes.toFixed(0)}</p>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-1">
+                    <p className="text-[10px] text-zinc-400 mb-1">Net</p>
+                    <p className={`font-mono font-bold ${netPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {netPnL >= 0 ? '+' : ''}₹{netPnL.toFixed(0)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
-      {/* Trades List */}
-      <motion.div variants={item} className="space-y-4">
-        <div className="flex items-center justify-between px-2">
-          <h2 className="label">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}&apos;s Activity</h2>
-          <span className="text-xs text-zinc-600">{trades.length} trades</span>
+          {/* Kill Switch Warning */}
+          {isLocked && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="relative overflow-hidden rounded-2xl border border-red-500/30 bg-red-500/10 p-5"
+            >
+              <div className="flex items-center gap-3">
+                <AlertOctagon className="w-6 h-6 text-red-400 animate-pulse flex-shrink-0" />
+                <div>
+                  <p className="text-red-400 font-bold">
+                    {isMaxLossReached ? 'MAX LOSS REACHED' : 'TARGET ACHIEVED'}
+                  </p>
+                  <p className="text-red-300/70 text-xs mt-1">
+                    {isMaxLossReached ? 'Session locked. Protect capital.' : 'Book profits and step away.'}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
 
-        {trades.length === 0 ? (
-          <div className="card p-12 text-center border-dashed">
-            <p className="text-zinc-500">No trades logged in this session</p>
-          </div>
-        ) : (
-          <div className="table-container">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="table-header text-left">Time</th>
-                    <th className="table-header text-left">Script</th>
-                    <th className="table-header text-left">Setup</th>
-                    <th className="table-header text-left">Market</th>
-                    <th className="table-header text-left">Comments</th>
-                    <th className="table-header text-right">P&L</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {trades.map((trade, i) => (
-                    <motion.tr
-                      key={trade.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="table-row"
-                    >
-                      <td className="table-cell">
-                        <span className="text-zinc-400 text-sm">
-                          {new Date(trade.created_at).toLocaleTimeString('en-IN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                          })}
-                        </span>
-                      </td>
-                      <td className="table-cell">
-                        <span className="text-white font-medium">{trade.trade_name}</span>
-                      </td>
-                      <td className="table-cell">
-                        <span className="text-zinc-400 text-sm capitalize">
-                          {trade.setup_type?.replace('_', ' ') || '-'}
-                        </span>
-                      </td>
-                      <td className="table-cell">
-                        <span className={`text-sm capitalize ${trade.market_state === 'sideways' ? 'text-yellow-400' :
-                          (trade.market_state === 'volatile' || trade.market_state === 'choppy') ? 'text-orange-400' : 'text-zinc-400'
-                          }`}>
-                          {trade.market_state || '-'}
-                        </span>
-                      </td>
-                      <td className="table-cell">
-                        <span className="text-zinc-500 text-sm">{trade.comments || '-'}</span>
-                      </td>
-                      <td className="table-cell text-right">
-                        <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {trade.pnl_amount >= 0 ? '+' : ''}₹{trade.pnl_amount.toLocaleString('en-IN')}
-                        </span>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* RIGHT COLUMN - Trade Form & Activity (7 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Trade Entry Form */}
+          <motion.div variants={item}>
+            <TradeEntryForm
+              startingCapital={settings.starting_capital}
+              maxTradesPerDay={settings.max_trades_per_day}
+              todayTradeCount={tradeCount}
+              lastLossTime={lastLossTime}
+              lastTradeTime={lastTradeTime}
+              onTradeAdded={() => {
+                setLastTradeTime(new Date());
+                fetchData();
+              }}
+              disabled={isLocked}
+              disableReason={disableReason}
+            />
+          </motion.div>
+
+          {/* Trades List */}
+          <motion.div variants={item} className="space-y-3">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="label">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}&apos;s Activity</h2>
+              <span className="text-xs text-zinc-600">{trades.length} trades</span>
             </div>
-          </div>
-        )}
-      </motion.div>
+
+            {trades.length === 0 ? (
+              <div className="card p-8 text-center border-dashed">
+                <p className="text-zinc-500">No trades logged in this session</p>
+              </div>
+            ) : (
+              <div className="table-container">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th className="table-header text-left">Time</th>
+                        <th className="table-header text-left">Script</th>
+                        <th className="table-header text-left">Setup</th>
+                        <th className="table-header text-left">Market</th>
+                        <th className="table-header text-right">P&L</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {trades.map((trade, i) => (
+                        <motion.tr
+                          key={trade.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className="table-row"
+                        >
+                          <td className="table-cell">
+                            <span className="text-zinc-400 text-sm">
+                              {new Date(trade.created_at).toLocaleTimeString('en-IN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </span>
+                          </td>
+                          <td className="table-cell">
+                            <span className="text-white font-medium">{trade.trade_name}</span>
+                          </td>
+                          <td className="table-cell">
+                            <span className="text-zinc-400 text-sm capitalize">
+                              {trade.setup_type?.replace('_', ' ') || '-'}
+                            </span>
+                          </td>
+                          <td className="table-cell">
+                            <span className={`text-sm capitalize ${trade.market_state === 'sideways' ? 'text-yellow-400' :
+                                (trade.market_state === 'volatile' || trade.market_state === 'choppy') ? 'text-orange-400' : 'text-zinc-400'
+                              }`}>
+                              {trade.market_state || '-'}
+                            </span>
+                          </td>
+                          <td className="table-cell text-right">
+                            <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                              {trade.pnl_amount >= 0 ? '+' : ''}₹{trade.pnl_amount.toLocaleString('en-IN')}
+                            </span>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </div>
 
       <PanicButton />
     </motion.div>
