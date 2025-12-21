@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Save, CheckCircle2, AlertCircle, Wallet, TrendingDown, TrendingUp } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Wallet, TrendingDown, TrendingUp, Hash, IndianRupee, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SettingsForm() {
@@ -12,9 +12,13 @@ export default function SettingsForm() {
 
     const [formData, setFormData] = useState({
         starting_capital: 0,
-        max_daily_loss_percent: 0,
-        daily_profit_target_percent: 0,
+        max_daily_loss_percent: 2,
+        daily_profit_target_percent: 5,
+        max_trades_per_day: 10,
+        brokerage_per_order: 20,
     });
+
+    const [streak, setStreak] = useState(0);
 
     useEffect(() => {
         fetchSettings();
@@ -31,10 +35,13 @@ export default function SettingsForm() {
 
             if (data) {
                 setFormData({
-                    starting_capital: data.starting_capital,
-                    max_daily_loss_percent: data.max_daily_loss_percent,
-                    daily_profit_target_percent: data.daily_profit_target_percent,
+                    starting_capital: data.starting_capital || 0,
+                    max_daily_loss_percent: data.max_daily_loss_percent || 2,
+                    daily_profit_target_percent: data.daily_profit_target_percent || 5,
+                    max_trades_per_day: data.max_trades_per_day || 10,
+                    brokerage_per_order: data.brokerage_per_order || 20,
                 });
+                setStreak(data.current_streak || 0);
             }
         } catch (error) {
             console.error('Error fetching settings:', error);
@@ -49,7 +56,6 @@ export default function SettingsForm() {
         setMessage(null);
 
         try {
-            // Check if settings already exist
             const { data: existing } = await supabase
                 .from('settings')
                 .select('id')
@@ -57,7 +63,6 @@ export default function SettingsForm() {
 
             let error;
             if (existing) {
-                // Update existing settings
                 ({ error } = await supabase
                     .from('settings')
                     .update({
@@ -66,11 +71,11 @@ export default function SettingsForm() {
                     })
                     .eq('id', existing.id));
             } else {
-                // Insert new settings
                 ({ error } = await supabase
                     .from('settings')
                     .insert({
                         ...formData,
+                        current_streak: 0,
                         updated_at: new Date().toISOString(),
                     }));
             }
@@ -86,7 +91,7 @@ export default function SettingsForm() {
 
     if (loading) {
         return (
-            <div className="max-w-xl mx-auto">
+            <div className="max-w-xl mx-auto pt-20">
                 <div className="card p-12 text-center">
                     <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin mx-auto" />
                 </div>
@@ -99,19 +104,30 @@ export default function SettingsForm() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             onSubmit={handleSubmit}
-            className="max-w-xl mx-auto"
+            className="max-w-xl mx-auto pt-20"
         >
             <div className="card-glow p-8 relative">
                 <div className="relative z-10 space-y-8">
                     {/* Header */}
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center border border-emerald-500/20">
-                            <Save className="w-6 h-6 text-emerald-400" />
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center border border-emerald-500/20">
+                                <Save className="w-6 h-6 text-emerald-400" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-white">Trading Parameters</h2>
+                                <p className="text-sm text-zinc-500 mt-1">Configure your risk management protocol</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-white">Trading Parameters</h2>
-                            <p className="text-sm text-zinc-500 mt-1">Configure your risk management protocol</p>
-                        </div>
+
+                        {/* Streak Badge */}
+                        {streak > 0 && (
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                                <Flame className="w-4 h-4 text-orange-400" />
+                                <span className="text-orange-400 font-bold">{streak}</span>
+                                <span className="text-orange-400/70 text-xs">day streak</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Message */}
@@ -144,7 +160,7 @@ export default function SettingsForm() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2">
                                 <Wallet className="w-4 h-4 text-zinc-500" />
-                                <label className="label">Starting Capital (INR)</label>
+                                <label className="label">Starting Capital (₹)</label>
                             </div>
                             <input
                                 type="number"
@@ -156,7 +172,7 @@ export default function SettingsForm() {
                             />
                         </div>
 
-                        {/* Risk Parameters */}
+                        {/* Risk Parameters - Row 1 */}
                         <div className="grid grid-cols-2 gap-4">
                             {/* Max Loss */}
                             <div className="space-y-3">
@@ -188,6 +204,41 @@ export default function SettingsForm() {
                                     onChange={(e) => setFormData({ ...formData, daily_profit_target_percent: parseFloat(e.target.value) || 0 })}
                                     className="input"
                                     placeholder="5.0"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Discipline Parameters - Row 2 */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Max Trades */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Hash className="w-4 h-4 text-blue-400" />
+                                    <label className="label">Max Trades/Day</label>
+                                </div>
+                                <input
+                                    type="number"
+                                    value={formData.max_trades_per_day || ''}
+                                    onChange={(e) => setFormData({ ...formData, max_trades_per_day: parseInt(e.target.value) || 10 })}
+                                    className="input"
+                                    placeholder="10"
+                                    required
+                                />
+                            </div>
+
+                            {/* Brokerage */}
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <IndianRupee className="w-4 h-4 text-yellow-400" />
+                                    <label className="label">Brokerage/Order (₹)</label>
+                                </div>
+                                <input
+                                    type="number"
+                                    value={formData.brokerage_per_order || ''}
+                                    onChange={(e) => setFormData({ ...formData, brokerage_per_order: parseFloat(e.target.value) || 20 })}
+                                    className="input"
+                                    placeholder="20"
                                     required
                                 />
                             </div>

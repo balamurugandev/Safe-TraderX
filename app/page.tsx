@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import TradeEntryForm from '@/components/TradeEntryForm';
 import PanicButton from '@/components/PanicButton';
 import QuotesMarquee from '@/components/QuotesMarquee';
-import { TrendingUp, TrendingDown, Wallet, AlertOctagon, ArrowRight, Activity, Sparkles, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, AlertOctagon, ArrowRight, Activity, Sparkles, Clock, Flame, Calculator } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -13,6 +13,9 @@ interface Settings {
   starting_capital: number;
   max_daily_loss_percent: number;
   daily_profit_target_percent: number;
+  max_trades_per_day: number;
+  brokerage_per_order: number;
+  current_streak: number;
 }
 
 interface Trade {
@@ -20,6 +23,7 @@ interface Trade {
   trade_name: string;
   pnl_amount: number;
   comments?: string;
+  is_loss?: boolean;
   created_at: string;
 }
 
@@ -50,6 +54,7 @@ export default function Dashboard() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [lastLossTime, setLastLossTime] = useState<Date | null>(null);
 
   // Update clock every second
   useEffect(() => {
@@ -59,6 +64,21 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  // Check localStorage for last loss time
+  useEffect(() => {
+    const stored = localStorage.getItem('lastLossTime');
+    if (stored) {
+      const lossTime = new Date(stored);
+      const now = new Date();
+      // Only set if within 15 minutes
+      if (now.getTime() - lossTime.getTime() < 15 * 60 * 1000) {
+        setLastLossTime(lossTime);
+      } else {
+        localStorage.removeItem('lastLossTime');
+      }
+    }
+  }, []);
+
   const fetchData = useCallback(async () => {
     try {
       const { data: settingsData } = await supabase
@@ -66,7 +86,16 @@ export default function Dashboard() {
         .select('*')
         .single();
 
-      if (settingsData) setSettings(settingsData);
+      if (settingsData) {
+        setSettings({
+          starting_capital: settingsData.starting_capital || 0,
+          max_daily_loss_percent: settingsData.max_daily_loss_percent || 2,
+          daily_profit_target_percent: settingsData.daily_profit_target_percent || 5,
+          max_trades_per_day: settingsData.max_trades_per_day || 10,
+          brokerage_per_order: settingsData.brokerage_per_order || 20,
+          current_streak: settingsData.current_streak || 0,
+        });
+      }
 
       const today = new Date().toISOString().split('T')[0];
       const { data: tradesData } = await supabase
@@ -75,7 +104,20 @@ export default function Dashboard() {
         .eq('trade_date', today)
         .order('created_at', { ascending: false });
 
-      if (tradesData) setTrades(tradesData);
+      if (tradesData) {
+        setTrades(tradesData);
+
+        // Check for last loss
+        const lastLoss = tradesData.find(t => t.pnl_amount < 0);
+        if (lastLoss) {
+          const lossTime = new Date(lastLoss.created_at);
+          const now = new Date();
+          if (now.getTime() - lossTime.getTime() < 15 * 60 * 1000) {
+            setLastLossTime(lossTime);
+            localStorage.setItem('lastLossTime', lossTime.toISOString());
+          }
+        }
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -106,7 +148,6 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-md"
         >
-          {/* Hero Icon */}
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -152,7 +193,6 @@ export default function Dashboard() {
             </Link>
           </motion.div>
 
-          {/* Features */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -175,23 +215,30 @@ export default function Dashboard() {
     );
   }
 
-  const totalPnL = trades.reduce((sum, t) => sum + t.pnl_amount, 0);
-  const currentPnlPct = settings.starting_capital > 0 ? (totalPnL / settings.starting_capital) * 100 : 0;
+  // Calculations
+  const grossPnL = trades.reduce((sum, t) => sum + t.pnl_amount, 0);
+  const tradeCount = trades.length;
+  const brokerageTotal = tradeCount * settings.brokerage_per_order * 2; // Buy + Sell
+  const estimatedTaxes = Math.abs(grossPnL) * 0.001; // ~0.1% estimate
+  const netPnL = grossPnL - brokerageTotal - estimatedTaxes;
 
-  // Calculate actual loss/profit limits in rupees
+  const currentPnlPct = settings.starting_capital > 0 ? (grossPnL / settings.starting_capital) * 100 : 0;
   const maxLossAmount = settings.starting_capital * settings.max_daily_loss_percent / 100;
   const profitTargetAmount = settings.starting_capital * settings.daily_profit_target_percent / 100;
 
-  const isMaxLossReached = totalPnL <= -maxLossAmount;
-  const isProfitTargetReached = totalPnL >= profitTargetAmount;
+  const isMaxLossReached = grossPnL <= -maxLossAmount;
+  const isProfitTargetReached = grossPnL >= profitTargetAmount;
   const isLocked = isMaxLossReached || isProfitTargetReached;
+
+  const disableReason = isMaxLossReached
+    ? 'Maximum loss limit reached. Protect your capital.'
+    : isProfitTargetReached
+      ? 'Profit target achieved! Book your profits.'
+      : undefined;
 
   const container = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const item = {
@@ -199,7 +246,6 @@ export default function Dashboard() {
     show: { opacity: 1, y: 0 }
   };
 
-  // Get today's date formatted
   const todayFormatted = formatDateIST(currentTime);
 
   return (
@@ -215,10 +261,20 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-white">{todayFormatted}</h1>
           <p className="text-zinc-500 text-sm">Trading Session</p>
         </div>
-        <div className="flex items-center gap-2 text-zinc-400">
-          <Clock className="w-4 h-4" />
-          <span className="font-mono text-lg">{formatTimeIST(currentTime)}</span>
-          <span className="text-xs text-zinc-600">IST</span>
+        <div className="flex items-center gap-4">
+          {/* Streak */}
+          {settings.current_streak > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
+              <Flame className="w-4 h-4 text-orange-400" />
+              <span className="text-orange-400 font-bold">{settings.current_streak}</span>
+              <span className="text-orange-400/70 text-xs">day streak</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-zinc-400">
+            <Clock className="w-4 h-4" />
+            <span className="font-mono text-lg">{formatTimeIST(currentTime)}</span>
+            <span className="text-xs text-zinc-600">IST</span>
+          </div>
         </div>
       </motion.div>
 
@@ -233,7 +289,7 @@ export default function Dashboard() {
           icon={<Wallet className="w-5 h-5" />}
           label="Starting Capital"
           value={`₹${settings.starting_capital.toLocaleString('en-IN')}`}
-          subtext="Available Margin"
+          subtext={`${tradeCount}/${settings.max_trades_per_day} trades`}
         />
         <StatCard
           icon={<TrendingDown className="w-5 h-5" />}
@@ -253,13 +309,12 @@ export default function Dashboard() {
 
       {/* Main P&L Display */}
       <motion.div variants={item}>
-        <div className={`card-glow ${totalPnL < 0 ? 'card-danger' : ''} p-8 sm:p-12 text-center relative`}>
+        <div className={`card-glow ${grossPnL < 0 ? 'card-danger' : ''} p-8 sm:p-12 text-center relative`}>
           <div className="relative z-10">
-            <p className="label mb-4">Today&apos;s Net P&L</p>
+            <p className="label mb-4">Today&apos;s Gross P&L</p>
 
-            <div className={`text-5xl sm:text-7xl md:text-8xl font-bold tracking-tighter mb-4 ${totalPnL >= 0 ? 'stat-value-profit' : 'stat-value-loss'
-              }`}>
-              {totalPnL >= 0 ? '+' : ''}₹{Math.abs(totalPnL).toLocaleString('en-IN')}
+            <div className={`text-5xl sm:text-7xl md:text-8xl font-bold tracking-tighter mb-4 ${grossPnL >= 0 ? 'stat-value-profit' : 'stat-value-loss'}`}>
+              {grossPnL >= 0 ? '+' : ''}₹{Math.abs(grossPnL).toLocaleString('en-IN')}
             </div>
 
             <div className={`inline-flex badge ${currentPnlPct >= 0 ? 'badge-profit' : 'badge-loss'}`}>
@@ -269,6 +324,47 @@ export default function Dashboard() {
           </div>
         </div>
       </motion.div>
+
+      {/* Net P&L Calculator */}
+      {tradeCount > 0 && (
+        <motion.div variants={item}>
+          <div className="card p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Calculator className="w-5 h-5 text-blue-400" />
+              <h3 className="font-semibold text-white">Brokerage & Tax Estimate</h3>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">Gross P&L</p>
+                <p className={`font-mono font-bold ${grossPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {grossPnL >= 0 ? '+' : ''}₹{grossPnL.toLocaleString('en-IN')}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">Brokerage</p>
+                <p className="font-mono text-yellow-400">
+                  -₹{brokerageTotal.toLocaleString('en-IN')}
+                </p>
+                <p className="text-[10px] text-zinc-600">{tradeCount} × ₹{settings.brokerage_per_order} × 2</p>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">Est. Taxes</p>
+                <p className="font-mono text-yellow-400">
+                  -₹{estimatedTaxes.toFixed(0)}
+                </p>
+                <p className="text-[10px] text-zinc-600">~0.1% STT</p>
+              </div>
+              <div className="bg-white/5 rounded-lg p-2">
+                <p className="text-xs text-zinc-400 mb-1">Net P&L</p>
+                <p className={`font-mono font-bold text-lg ${netPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {netPnL >= 0 ? '+' : ''}₹{netPnL.toFixed(0)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Kill Switch Warning */}
       {isLocked && (
@@ -298,8 +394,12 @@ export default function Dashboard() {
       <motion.div variants={item}>
         <TradeEntryForm
           startingCapital={settings.starting_capital}
+          maxTradesPerDay={settings.max_trades_per_day}
+          todayTradeCount={tradeCount}
+          lastLossTime={lastLossTime}
           onTradeAdded={fetchData}
           disabled={isLocked}
+          disableReason={disableReason}
         />
       </motion.div>
 
