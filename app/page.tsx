@@ -391,20 +391,20 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
               <div>
-                <p className="text-xs text-zinc-500 mb-1">Gross P&L</p>
+                <p className="text-xs text-zinc-400 mb-1">Gross P&L</p>
                 <p className={`font-mono font-bold ${grossPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {grossPnL >= 0 ? '+' : ''}₹{grossPnL.toLocaleString('en-IN')}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-zinc-500 mb-1">Brokerage + GST</p>
+                <p className="text-xs text-zinc-400 mb-1">Brokerage + GST</p>
                 <p className="font-mono text-yellow-400">
                   -₹{(brokerageTotal * 1.18).toFixed(0)}
                 </p>
                 <p className="text-[10px] text-zinc-600">{tradeCount} × ₹{settings.brokerage_per_order} × 2 + 18% GST</p>
               </div>
               <div>
-                <p className="text-xs text-zinc-500 mb-1">STT + Charges</p>
+                <p className="text-xs text-zinc-400 mb-1">STT + Charges</p>
                 <p className="font-mono text-yellow-400">
                   -₹{estimatedTaxes.toFixed(0)}
                 </p>
@@ -577,7 +577,7 @@ function StatCard({
       </div>
       <p className="label mb-2">{label}</p>
       <p className={`text-2xl font-bold ${valueColors[variant]}`}>{value}</p>
-      <p className="text-xs text-zinc-500 mt-1 font-mono">{subtext}</p>
+      <p className="text-xs text-zinc-300 mt-1 font-mono">{subtext}</p>
     </motion.div>
   );
 }

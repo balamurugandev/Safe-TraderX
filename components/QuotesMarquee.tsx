@@ -44,9 +44,9 @@ export default function QuotesMarquee() {
             >
                 {allQuotes.map((quote, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
-                        <Quote className="w-3 h-3 text-emerald-500/50 flex-shrink-0" />
-                        <span className="text-zinc-400 italic">"{quote.text}"</span>
-                        <span className="text-zinc-600">— {quote.author}</span>
+                        <Quote className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                        <span className="text-zinc-200 italic">"{quote.text}"</span>
+                        <span className="text-emerald-400/80 font-medium">— {quote.author}</span>
                     </div>
                 ))}
             </motion.div>
