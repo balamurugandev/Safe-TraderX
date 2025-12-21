@@ -56,10 +56,11 @@ export default function PanicButton() {
                 onClick={handlePanic}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="panic-btn fixed bottom-8 right-8 w-16 h-16 flex items-center justify-center z-40 cursor-pointer border-0"
+                className="panic-btn fixed bottom-8 right-8 px-6 py-4 flex items-center gap-3 z-40 cursor-pointer border-0 rounded-2xl"
                 title="Panic Button - Stop Revenge Trading"
             >
                 <ShieldAlert className="w-7 h-7 text-white" />
+                <span className="text-white font-bold text-lg tracking-wider">PANIC</span>
             </motion.button>
 
             {/* Modal */}

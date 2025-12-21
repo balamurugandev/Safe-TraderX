@@ -475,7 +475,7 @@ export default function Dashboard() {
                       </td>
                       <td className="table-cell">
                         <span className={`text-sm capitalize ${trade.market_state === 'sideways' ? 'text-yellow-400' :
-                          trade.market_state === 'volatile' ? 'text-orange-400' : 'text-zinc-400'
+                            (trade.market_state === 'volatile' || trade.market_state === 'choppy') ? 'text-orange-400' : 'text-zinc-400'
                           }`}>
                           {trade.market_state || '-'}
                         </span>

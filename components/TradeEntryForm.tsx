@@ -38,7 +38,8 @@ const MARKET_STATES = [
     { value: '', label: 'Select Market State...' },
     { value: 'trending', label: '📈 Trending' },
     { value: 'sideways', label: '➡️ Sideways/Range' },
-    { value: 'volatile', label: '⚡ Volatile/Choppy' },
+    { value: 'volatile', label: '⚡ Volatile' },
+    { value: 'choppy', label: '🔀 Choppy' },
 ];
 
 const getDefaultFormData = () => ({
@@ -436,9 +437,9 @@ export default function TradeEntryForm({
                                 </option>
                             ))}
                         </select>
-                        {formData.market_state === 'sideways' && (
+                        {(formData.market_state === 'sideways' || formData.market_state === 'choppy') && (
                             <p className="text-xs text-yellow-400">
-                                ⚠️ Sideways markets often lead to losses. Be cautious.
+                                ⚠️ {formData.market_state === 'sideways' ? 'Sideways markets' : 'Choppy markets'} often lead to whipsaws and losses. Trade with caution.
                             </p>
                         )}
                     </div>
