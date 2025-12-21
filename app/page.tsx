@@ -306,7 +306,7 @@ export default function Dashboard() {
       {/* Trades List */}
       <motion.div variants={item} className="space-y-4">
         <div className="flex items-center justify-between px-2">
-          <h2 className="label">{formatDateIST(new Date()).split(',')[0]}&apos;s Activity</h2>
+          <h2 className="label">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}&apos;s Activity</h2>
           <span className="text-xs text-zinc-600">{trades.length} trades</span>
         </div>
 
