@@ -1,36 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛡️ Safe TradeX
 
-## Getting Started
+A discipline-focused trading journal for Indian options traders. Built to help you stay disciplined, manage risk, and avoid emotional trading.
 
-First, run the development server:
+**Live App:** [safe-trader-x.vercel.app](https://safe-trader-x.vercel.app)
 
+![Safe TradeX Dashboard](https://img.shields.io/badge/Status-Live-brightgreen)
+
+## ✨ Features
+
+### 📊 Dashboard (3-Column Desktop Layout)
+- **Real-time P&L tracking** with gross and net calculations
+- **Brokerage & tax estimator** (includes GST, STT, exchange charges)
+- **Trade counter** with configurable daily limits
+- **Kill switch** - auto-locks trading when max loss or profit target is hit
+- **Live IST clock** for session awareness
+
+### 📝 Trade Entry
+- Quick trade logging with script name, P&L, setup type, and market state
+- **Emotional checklist** - post-trade reflection for FOMO/Revenge awareness
+- **Cool-off timer** after losses (configurable)
+- **Post-trade pause** to prevent overtrading
+
+### ⚠️ Behavioral Safeguards
+- **Persistent warning banners** for emotional trades (FOMO/Revenge)
+- Warnings only clear after logging a "high-probability" trade
+- **Panic button** with motivational quotes and circuit breaker
+- Market state warnings for Sideways/Choppy conditions
+
+### 📈 History & Analytics
+- Full trade history with edit/delete functionality
+- Cumulative P&L tracking
+- Date range filtering
+- Setup and market state analysis
+
+### ⚙️ Settings
+- Starting capital configuration
+- Max daily loss % and profit target %
+- Max trades per day limit
+- Brokerage per order setting
+- Trading streak tracking
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 16 (App Router, Turbopack)
+- **Database:** Supabase (PostgreSQL)
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion
+- **Icons:** Lucide React
+- **Hosting:** Vercel
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- Supabase account
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/balamurugandev/Safe-TraderX.git
+cd Safe-TraderX
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Create `.env.local` with your Supabase credentials:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run the development server:
+```bash
+npm run dev
+```
 
-## Learn More
+5. Open [http://localhost:3000](http://localhost:3000)
 
-To learn more about Next.js, take a look at the following resources:
+### Database Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create these tables in Supabase:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**`trading_settings`**
+```sql
+CREATE TABLE trading_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  starting_capital NUMERIC DEFAULT 20000,
+  max_daily_loss_percent NUMERIC DEFAULT 2,
+  daily_profit_target_percent NUMERIC DEFAULT 5,
+  max_trades_per_day INTEGER DEFAULT 10,
+  brokerage_per_order NUMERIC DEFAULT 20,
+  current_streak INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 
-## Deploy on Vercel
+**`daily_trades`**
+```sql
+CREATE TABLE daily_trades (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  trade_name TEXT NOT NULL,
+  pnl_amount NUMERIC NOT NULL,
+  comments TEXT,
+  setup_type TEXT,
+  market_state TEXT,
+  trade_date DATE DEFAULT CURRENT_DATE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🌐 Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app is deployed on Vercel with automatic deployments from the `main` branch.
+
+To deploy your own instance:
+1. Fork/clone this repository
+2. Connect to Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy!
+
+## 📱 Screenshots
+
+The app features a responsive 3-column desktop layout:
+- **Left:** P&L display + Stats + Brokerage calculator
+- **Center:** Trade entry form with emotional checklist
+- **Right:** Today's activity feed
+
+## 🤝 Contributing
+
+This is a personal trading discipline tool, but feel free to fork and customize for your own use!
+
+## 📄 License
+
+MIT License - feel free to use and modify.
+
+---
+
+**Built with discipline, for discipline. 🎯**
