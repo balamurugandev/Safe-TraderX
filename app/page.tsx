@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import TradeEntryForm from '@/components/TradeEntryForm';
 import PanicButton from '@/components/PanicButton';
-import { TrendingUp, TrendingDown, Wallet, AlertOctagon, ArrowRight, Activity, Sparkles } from 'lucide-react';
+import QuotesMarquee from '@/components/QuotesMarquee';
+import { TrendingUp, TrendingDown, Wallet, AlertOctagon, ArrowRight, Activity, Sparkles, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -18,13 +19,45 @@ interface Trade {
   id: string;
   trade_name: string;
   pnl_amount: number;
+  comments?: string;
   created_at: string;
+}
+
+// Format date for display
+function formatDateIST(date: Date): string {
+  return date.toLocaleDateString('en-IN', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata'
+  });
+}
+
+// Format time for display
+function formatTimeIST(date: Date): string {
+  return date.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: 'Asia/Kolkata'
+  });
 }
 
 export default function Dashboard() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -56,7 +89,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center pt-20">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
           <p className="text-zinc-500 text-sm">Initializing trading system...</p>
@@ -67,7 +100,7 @@ export default function Dashboard() {
 
   if (!settings) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
+      <div className="min-h-[70vh] flex items-center justify-center px-4 pt-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,7 +116,7 @@ export default function Dashboard() {
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.4)]">
               <Sparkles className="w-12 h-12 text-white" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-[#0a0a0f]">
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center border-4 border-[#1a1a24]">
               <Activity className="w-4 h-4 text-white" />
             </div>
           </motion.div>
@@ -145,8 +178,12 @@ export default function Dashboard() {
   const totalPnL = trades.reduce((sum, t) => sum + t.pnl_amount, 0);
   const currentPnlPct = settings.starting_capital > 0 ? (totalPnL / settings.starting_capital) * 100 : 0;
 
-  const isMaxLossReached = currentPnlPct <= -settings.max_daily_loss_percent;
-  const isProfitTargetReached = currentPnlPct >= settings.daily_profit_target_percent;
+  // Calculate actual loss/profit limits in rupees
+  const maxLossAmount = settings.starting_capital * settings.max_daily_loss_percent / 100;
+  const profitTargetAmount = settings.starting_capital * settings.daily_profit_target_percent / 100;
+
+  const isMaxLossReached = totalPnL <= -maxLossAmount;
+  const isProfitTargetReached = totalPnL >= profitTargetAmount;
   const isLocked = isMaxLossReached || isProfitTargetReached;
 
   const container = {
@@ -162,13 +199,34 @@ export default function Dashboard() {
     show: { opacity: 1, y: 0 }
   };
 
+  // Get today's date formatted
+  const todayFormatted = formatDateIST(currentTime);
+
   return (
     <motion.div
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-8 pb-28 pt-20"
+      className="space-y-6 pb-28 pt-20"
     >
+      {/* Date/Time Header */}
+      <motion.div variants={item} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">{todayFormatted}</h1>
+          <p className="text-zinc-500 text-sm">Trading Session</p>
+        </div>
+        <div className="flex items-center gap-2 text-zinc-400">
+          <Clock className="w-4 h-4" />
+          <span className="font-mono text-lg">{formatTimeIST(currentTime)}</span>
+          <span className="text-xs text-zinc-600">IST</span>
+        </div>
+      </motion.div>
+
+      {/* Scrolling Quotes */}
+      <motion.div variants={item}>
+        <QuotesMarquee />
+      </motion.div>
+
       {/* Stats Grid */}
       <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
@@ -181,14 +239,14 @@ export default function Dashboard() {
           icon={<TrendingDown className="w-5 h-5" />}
           label="Max Daily Loss"
           value={`${settings.max_daily_loss_percent}%`}
-          subtext={`₹${(settings.starting_capital * settings.max_daily_loss_percent / 100).toLocaleString('en-IN')}`}
+          subtext={`₹${maxLossAmount.toLocaleString('en-IN')}`}
           variant="danger"
         />
         <StatCard
           icon={<TrendingUp className="w-5 h-5" />}
           label="Profit Target"
           value={`${settings.daily_profit_target_percent}%`}
-          subtext={`₹${(settings.starting_capital * settings.daily_profit_target_percent / 100).toLocaleString('en-IN')}`}
+          subtext={`₹${profitTargetAmount.toLocaleString('en-IN')}`}
           variant="success"
         />
       </motion.div>
@@ -197,7 +255,7 @@ export default function Dashboard() {
       <motion.div variants={item}>
         <div className={`card-glow ${totalPnL < 0 ? 'card-danger' : ''} p-8 sm:p-12 text-center relative`}>
           <div className="relative z-10">
-            <p className="label mb-4">Today's Net P&L</p>
+            <p className="label mb-4">Today&apos;s Net P&L</p>
 
             <div className={`text-5xl sm:text-7xl md:text-8xl font-bold tracking-tighter mb-4 ${totalPnL >= 0 ? 'stat-value-profit' : 'stat-value-loss'
               }`}>
@@ -248,7 +306,7 @@ export default function Dashboard() {
       {/* Trades List */}
       <motion.div variants={item} className="space-y-4">
         <div className="flex items-center justify-between px-2">
-          <h2 className="label">Session Activity</h2>
+          <h2 className="label">{formatDateIST(new Date()).split(',')[0]}&apos;s Activity</h2>
           <span className="text-xs text-zinc-600">{trades.length} trades</span>
         </div>
 
@@ -268,9 +326,14 @@ export default function Dashboard() {
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full ${trade.pnl_amount >= 0 ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                  <span className="font-medium text-zinc-200 group-hover:text-white transition-colors">
-                    {trade.trade_name}
-                  </span>
+                  <div>
+                    <span className="font-medium text-zinc-200 group-hover:text-white transition-colors">
+                      {trade.trade_name}
+                    </span>
+                    {trade.comments && (
+                      <p className="text-xs text-zinc-500 mt-0.5">{trade.comments}</p>
+                    )}
+                  </div>
                 </div>
                 <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {trade.pnl_amount >= 0 ? '+' : ''}₹{trade.pnl_amount.toLocaleString('en-IN')}

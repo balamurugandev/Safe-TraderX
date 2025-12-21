@@ -14,11 +14,12 @@ CREATE TABLE settings (
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Create daily_trades table
+-- Create daily_trades table with comments field
 CREATE TABLE daily_trades (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   trade_name text NOT NULL,
   pnl_amount numeric NOT NULL,
+  comments text,
   trade_date date DEFAULT current_date NOT NULL,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );

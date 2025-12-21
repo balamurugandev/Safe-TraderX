@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, TrendingUp, TrendingDown, Lock, Calendar } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Lock, Calendar, MessageSquare, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface TradeEntryFormProps {
@@ -11,16 +11,23 @@ interface TradeEntryFormProps {
     disabled: boolean;
 }
 
+const getDefaultFormData = () => ({
+    trade_name: '',
+    pnl_amount: '',
+    comments: '',
+    trade_date: new Date().toISOString().split('T')[0],
+});
+
 export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled }: TradeEntryFormProps) {
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
-        trade_name: '',
-        pnl_amount: '',
-        trade_date: new Date().toISOString().split('T')[0], // Default to today
-    });
+    const [formData, setFormData] = useState(getDefaultFormData());
 
     const pnlValue = parseFloat(formData.pnl_amount) || 0;
     const pnlPercent = startingCapital > 0 ? (pnlValue / startingCapital) * 100 : 0;
+
+    const handleClear = () => {
+        setFormData(getDefaultFormData());
+    };
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -33,16 +40,13 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
                 .insert({
                     trade_name: formData.trade_name,
                     pnl_amount: pnlValue,
+                    comments: formData.comments || null,
                     trade_date: formData.trade_date,
                 });
 
             if (error) throw error;
 
-            setFormData({
-                trade_name: '',
-                pnl_amount: '',
-                trade_date: new Date().toISOString().split('T')[0],
-            });
+            setFormData(getDefaultFormData());
             onTradeAdded();
         } catch (error) {
             console.error('Error adding trade:', error);
@@ -93,20 +97,32 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
                     </div>
                 </div>
 
-                {/* Live Impact Badge */}
-                {formData.pnl_amount && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className={`badge ${pnlPercent >= 0 ? 'badge-profit' : 'badge-loss'}`}
+                <div className="flex items-center gap-3">
+                    {/* Live Impact Badge */}
+                    {formData.pnl_amount && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className={`badge ${pnlPercent >= 0 ? 'badge-profit' : 'badge-loss'}`}
+                        >
+                            {pnlPercent >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
+                        </motion.div>
+                    )}
+
+                    {/* Clear Button */}
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        className="btn-secondary py-2 px-3 text-sm flex items-center gap-1.5"
                     >
-                        {pnlPercent >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
-                    </motion.div>
-                )}
+                        <X className="w-3.5 h-3.5" />
+                        Clear
+                    </button>
+                </div>
             </div>
 
-            {/* Form Grid */}
+            {/* Form Grid - Row 1 */}
             <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
                 {/* Date Picker */}
                 <div className="sm:col-span-2 space-y-2">
@@ -157,6 +173,21 @@ export default function TradeEntryForm({ startingCapital, onTradeAdded, disabled
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Comments Field */}
+            <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-zinc-500" />
+                    <label className="label">Comments (Optional)</label>
+                </div>
+                <input
+                    type="text"
+                    value={formData.comments}
+                    onChange={(e) => setFormData({ ...formData, comments: e.target.value })}
+                    className="input"
+                    placeholder="e.g., Followed my setup, exited too early..."
+                />
             </div>
 
             {/* Submit */}
