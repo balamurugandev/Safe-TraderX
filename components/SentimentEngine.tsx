@@ -10,36 +10,16 @@ import {
     AlertTriangle,
     CheckCircle2,
     XCircle,
-    Gauge,
     Save,
     Loader2,
     ChevronDown
 } from 'lucide-react';
-import { useMarketSentiment, CPRType, VIXRange, OIBuildUp, GlobalCues } from '@/hooks/useMarketSentiment';
+import { useSentimentContext, VIX_LABELS, OI_LABELS, CPRType, VIXRange, OIBuildUp, GlobalCues } from '@/hooks/useMarketSentiment';
 
-export default function SentimentEngine() {
-    const {
-        state,
-        updateField,
-        result,
-        logSentiment,
-        isLogging,
-        lastLogId,
-        VIX_LABELS,
-        OI_LABELS
-    } = useMarketSentiment();
+// Compact Verdict Card - For top of dashboard
+export function SentimentVerdictCard() {
+    const { result, state } = useSentimentContext();
 
-    const [showSuccess, setShowSuccess] = useState(false);
-
-    const handleLogSentiment = async () => {
-        const logId = await logSentiment();
-        if (logId) {
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000);
-        }
-    };
-
-    // Get verdict colors
     const getVerdictColor = () => {
         switch (result.verdict) {
             case 'bullish': return 'emerald';
@@ -50,9 +30,101 @@ export default function SentimentEngine() {
     };
 
     const verdictColor = getVerdictColor();
-
-    // Gauge rotation: -90deg (0) to 90deg (100)
     const gaugeRotation = -90 + (result.convictionScore / 100) * 180;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`card p-4 ${verdictColor === 'emerald'
+                    ? 'border-emerald-500/30 shadow-lg shadow-emerald-500/10'
+                    : verdictColor === 'red'
+                        ? 'border-red-500/30 shadow-lg shadow-red-500/10'
+                        : verdictColor === 'yellow'
+                            ? 'border-yellow-500/30 shadow-lg shadow-yellow-500/10'
+                            : ''
+                }`}
+        >
+            <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                    <p className="text-xs text-zinc-500 uppercase tracking-wider">Market Verdict</p>
+                    <p className={`text-lg font-bold ${verdictColor === 'emerald' ? 'text-emerald-400'
+                            : verdictColor === 'red' ? 'text-red-400'
+                                : verdictColor === 'yellow' ? 'text-yellow-400'
+                                    : 'text-zinc-400'
+                        }`}>
+                        {result.verdictLabel}
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${result.convictionLabel === 'High Conviction'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : result.convictionLabel === 'Medium Conviction'
+                                    ? 'bg-yellow-500/20 text-yellow-400'
+                                    : 'bg-red-500/20 text-red-400'
+                            }`}>
+                            {result.convictionLabel === 'High Conviction' && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
+                            {result.convictionLabel === 'Low/Avoid' && <XCircle className="w-3 h-3 inline mr-1" />}
+                            {result.convictionLabel}
+                        </span>
+                        {state.supportLevel && state.resistanceLevel && (
+                            <span className="text-xs text-zinc-500">
+                                Range: {state.supportLevel} - {state.resistanceLevel}
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Sentiment Gauge */}
+                <div className="relative w-20 h-12">
+                    <svg viewBox="0 0 100 60" className="w-full h-full">
+                        <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="#333" strokeWidth="8" strokeLinecap="round" />
+                        <path d="M 10 55 A 40 40 0 0 1 30 20" fill="none" stroke="#ef4444" strokeWidth="8" strokeLinecap="round" opacity="0.6" />
+                        <path d="M 30 20 A 40 40 0 0 1 70 20" fill="none" stroke="#eab308" strokeWidth="8" strokeLinecap="round" opacity="0.6" />
+                        <path d="M 70 20 A 40 40 0 0 1 90 55" fill="none" stroke="#10b981" strokeWidth="8" strokeLinecap="round" opacity="0.6" />
+                        <g transform={`rotate(${gaugeRotation}, 50, 55)`}>
+                            <line x1="50" y1="55" x2="50" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                            <circle cx="50" cy="55" r="4" fill="white" />
+                        </g>
+                    </svg>
+                    <p className="text-center text-xs font-mono text-white">{result.convictionScore}%</p>
+                </div>
+            </div>
+
+            {/* Warnings */}
+            <AnimatePresence>
+                {result.warnings.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-3 space-y-2"
+                    >
+                        {result.warnings.map((warning, i) => (
+                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                                <p className="text-xs text-amber-300">{warning}</p>
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    );
+}
+
+// Full Input Form - For bottom of dashboard
+export function SentimentInputForm() {
+    const { state, updateField, logSentiment, isLogging } = useSentimentContext();
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    const handleLogSentiment = async () => {
+        const logId = await logSentiment();
+        if (logId) {
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        }
+    };
 
     return (
         <motion.div
@@ -61,15 +133,13 @@ export default function SentimentEngine() {
             className="card p-6 space-y-6"
         >
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-500/10 rounded-lg">
-                        <Activity className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-white">Market Sentiment Engine</h3>
-                        <p className="text-xs text-zinc-400">Real-time conviction analysis</p>
-                    </div>
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/10 rounded-lg">
+                    <Activity className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                    <h3 className="font-semibold text-white">Market Sentiment Engine</h3>
+                    <p className="text-xs text-zinc-400">Configure your market read</p>
                 </div>
             </div>
 
@@ -82,7 +152,7 @@ export default function SentimentEngine() {
                         <select
                             value={state.cprType}
                             onChange={(e) => updateField('cprType', e.target.value as CPRType)}
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50"
                         >
                             <option value="narrow">Narrow CPR</option>
                             <option value="wide">Wide CPR</option>
@@ -98,7 +168,7 @@ export default function SentimentEngine() {
                         <select
                             value={state.vixRange}
                             onChange={(e) => updateField('vixRange', e.target.value as VIXRange)}
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50"
                         >
                             {Object.entries(VIX_LABELS).map(([value, label]) => (
                                 <option key={value} value={value}>{label}</option>
@@ -115,7 +185,7 @@ export default function SentimentEngine() {
                         <select
                             value={state.oiBuildUp}
                             onChange={(e) => updateField('oiBuildUp', e.target.value as OIBuildUp)}
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50"
                         >
                             {Object.entries(OI_LABELS).map(([value, label]) => (
                                 <option key={value} value={value}>{label}</option>
@@ -135,7 +205,7 @@ export default function SentimentEngine() {
                         max="1.6"
                         value={state.pcrValue}
                         onChange={(e) => updateField('pcrValue', parseFloat(e.target.value) || 1.0)}
-                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:ring-2 focus:ring-purple-500/50"
                     />
                 </div>
 
@@ -147,7 +217,7 @@ export default function SentimentEngine() {
                         placeholder="e.g., 23800"
                         value={state.supportLevel}
                         onChange={(e) => updateField('supportLevel', e.target.value)}
-                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:ring-2 focus:ring-purple-500/50"
                     />
                 </div>
 
@@ -159,7 +229,7 @@ export default function SentimentEngine() {
                         placeholder="e.g., 24200"
                         value={state.resistanceLevel}
                         onChange={(e) => updateField('resistanceLevel', e.target.value)}
-                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50"
+                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:ring-2 focus:ring-purple-500/50"
                     />
                 </div>
             </div>
@@ -189,131 +259,6 @@ export default function SentimentEngine() {
                     ))}
                 </div>
             </div>
-
-            {/* Verdict Card */}
-            <motion.div
-                key={result.verdict}
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className={`p-5 rounded-xl border ${verdictColor === 'emerald'
-                        ? 'bg-emerald-500/10 border-emerald-500/30 shadow-lg shadow-emerald-500/10'
-                        : verdictColor === 'red'
-                            ? 'bg-red-500/10 border-red-500/30 shadow-lg shadow-red-500/10'
-                            : verdictColor === 'yellow'
-                                ? 'bg-yellow-500/10 border-yellow-500/30 shadow-lg shadow-yellow-500/10'
-                                : 'bg-zinc-800/50 border-zinc-700/50'
-                    }`}
-            >
-                <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                        <p className="text-xs text-zinc-400 uppercase tracking-wider">Market Verdict</p>
-                        <p className={`text-lg font-bold ${verdictColor === 'emerald' ? 'text-emerald-400'
-                                : verdictColor === 'red' ? 'text-red-400'
-                                    : verdictColor === 'yellow' ? 'text-yellow-400'
-                                        : 'text-zinc-400'
-                            }`}>
-                            {result.verdictLabel}
-                        </p>
-                    </div>
-
-                    {/* Sentiment Gauge */}
-                    <div className="relative w-24 h-14">
-                        <svg viewBox="0 0 100 60" className="w-full h-full">
-                            {/* Background arc */}
-                            <path
-                                d="M 10 55 A 40 40 0 0 1 90 55"
-                                fill="none"
-                                stroke="#333"
-                                strokeWidth="8"
-                                strokeLinecap="round"
-                            />
-                            {/* Colored arc segments */}
-                            <path
-                                d="M 10 55 A 40 40 0 0 1 30 20"
-                                fill="none"
-                                stroke="#ef4444"
-                                strokeWidth="8"
-                                strokeLinecap="round"
-                                opacity="0.6"
-                            />
-                            <path
-                                d="M 30 20 A 40 40 0 0 1 70 20"
-                                fill="none"
-                                stroke="#eab308"
-                                strokeWidth="8"
-                                strokeLinecap="round"
-                                opacity="0.6"
-                            />
-                            <path
-                                d="M 70 20 A 40 40 0 0 1 90 55"
-                                fill="none"
-                                stroke="#10b981"
-                                strokeWidth="8"
-                                strokeLinecap="round"
-                                opacity="0.6"
-                            />
-                            {/* Needle */}
-                            <g transform={`rotate(${gaugeRotation}, 50, 55)`}>
-                                <line
-                                    x1="50"
-                                    y1="55"
-                                    x2="50"
-                                    y2="22"
-                                    stroke="white"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                                <circle cx="50" cy="55" r="4" fill="white" />
-                            </g>
-                        </svg>
-                        <p className="text-center text-xs font-mono text-white mt-1">{result.convictionScore}%</p>
-                    </div>
-                </div>
-
-                {/* Conviction Badge */}
-                <div className="mt-3 flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${result.convictionLabel === 'High Conviction'
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : result.convictionLabel === 'Medium Conviction'
-                                ? 'bg-yellow-500/20 text-yellow-400'
-                                : 'bg-red-500/20 text-red-400'
-                        }`}>
-                        {result.convictionLabel === 'High Conviction' && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
-                        {result.convictionLabel === 'Low/Avoid' && <XCircle className="w-3 h-3 inline mr-1" />}
-                        {result.convictionLabel}
-                    </span>
-                    {state.supportLevel && state.resistanceLevel && (
-                        <span className="text-xs text-zinc-500">
-                            Range: {state.supportLevel} - {state.resistanceLevel}
-                        </span>
-                    )}
-                </div>
-            </motion.div>
-
-            {/* Warnings */}
-            <AnimatePresence>
-                {result.warnings.length > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="space-y-2"
-                    >
-                        {result.warnings.map((warning, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ x: -20, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: i * 0.1 }}
-                                className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20"
-                            >
-                                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                                <p className="text-sm text-amber-300">{warning}</p>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Log Button */}
             <div className="flex items-center gap-3">
@@ -350,5 +295,15 @@ export default function SentimentEngine() {
                 </AnimatePresence>
             </div>
         </motion.div>
+    );
+}
+
+// Legacy default export for backwards compatibility (full component)
+export default function SentimentEngine() {
+    return (
+        <div className="space-y-6">
+            <SentimentVerdictCard />
+            <SentimentInputForm />
+        </div>
     );
 }
