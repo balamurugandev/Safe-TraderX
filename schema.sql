@@ -78,3 +78,32 @@ UPDATE daily_trades SET is_loss = (pnl_amount < 0) WHERE is_loss IS NULL;
 -- -- Grant access
 -- GRANT ALL ON settings TO anon;
 -- GRANT ALL ON daily_trades TO anon;
+
+-- ============================================
+-- SENTIMENT ENGINE TABLES
+-- ============================================
+
+-- Create sentiment_logs table for market sentiment snapshots
+CREATE TABLE IF NOT EXISTS sentiment_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  cpr_type TEXT,
+  vix_range TEXT,
+  oi_build_up TEXT,
+  pcr_value DECIMAL,
+  global_cues TEXT,
+  support_level TEXT,
+  resistance_level TEXT,
+  final_verdict TEXT,
+  conviction_score INTEGER,
+  warnings TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Link trades to sentiment logs for post-trade analysis
+ALTER TABLE daily_trades ADD COLUMN IF NOT EXISTS sentiment_log_id UUID REFERENCES sentiment_logs(id);
+
+-- Disable RLS for single-user app
+ALTER TABLE sentiment_logs DISABLE ROW LEVEL SECURITY;
+
+-- Grant access to anon role
+GRANT ALL ON sentiment_logs TO anon;

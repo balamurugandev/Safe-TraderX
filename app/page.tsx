@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import TradeEntryForm from '@/components/TradeEntryForm';
 import PanicButton from '@/components/PanicButton';
 import QuotesMarquee from '@/components/QuotesMarquee';
+import SentimentEngine from '@/components/SentimentEngine';
 import { TrendingUp, TrendingDown, Wallet, AlertOctagon, ArrowRight, Activity, Sparkles, Clock, Flame, Calculator, AlertTriangle, X } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -327,6 +328,11 @@ export default function Dashboard() {
       {/* Scrolling Quotes */}
       <motion.div variants={item}>
         <QuotesMarquee />
+      </motion.div>
+
+      {/* Market Sentiment Engine */}
+      <motion.div variants={item}>
+        <SentimentEngine />
       </motion.div>
 
       {/* DESKTOP THREE-COLUMN LAYOUT */}
