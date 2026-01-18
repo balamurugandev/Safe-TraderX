@@ -119,9 +119,8 @@ export default function EquityCurve({
         };
     }, [chartData, startingCapital, maxDrawdownPercent]);
 
-    if (chartData.length < 1) {
-        return null;
-    }
+    // Check if chart has data for selected range
+    const hasDataForRange = chartData.length > 1;
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
@@ -162,8 +161,8 @@ export default function EquityCurve({
                             key={range}
                             onClick={() => setTimeRange(range)}
                             className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${timeRange === range
-                                    ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-white/10'
-                                    : 'text-zinc-500 hover:text-white'
+                                ? 'bg-zinc-800 text-white shadow-sm ring-1 ring-white/10'
+                                : 'text-zinc-500 hover:text-white'
                                 }`}
                         >
                             {range}
@@ -173,51 +172,80 @@ export default function EquityCurve({
             </div>
 
             <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                        data={chartData}
-                        margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                    >
-                        <defs>
-                            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                            </linearGradient>
-                            <linearGradient id="colorValueLoss" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} opacity={0.5} />
-                        <XAxis
-                            dataKey="displayDate"
-                            stroke="#ffffff"
-                            tick={{ fontSize: 11, fill: '#fff', fontWeight: 500 }}
-                            tickLine={false}
-                            axisLine={false}
-                            minTickGap={30}
-                            dy={10}
-                        />
-                        <YAxis
-                            stroke="#ffffff"
-                            tick={{ fontSize: 11, fill: '#fff', fontWeight: 500 }}
-                            tickLine={false}
-                            axisLine={false}
-                            tickFormatter={(value) => `₹${value}`}
-                            dx={-10}
-                        />
-                        <Tooltip content={<CustomTooltip />} />
-                        <ReferenceLine y={0} stroke="#666" strokeDasharray="3 3" />
-                        <Area
-                            type="monotone"
-                            dataKey="value"
-                            stroke={stats?.current && stats.current >= 0 ? "#10b981" : "#ef4444"}
-                            strokeWidth={3}
-                            fillOpacity={1}
-                            fill={stats?.current && stats.current >= 0 ? "url(#colorValue)" : "url(#colorValueLoss)"}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+                {hasDataForRange ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart
+                            data={chartData}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                        >
+                            <defs>
+                                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                                    <stop offset="50%" stopColor="#10b981" stopOpacity={0.15} />
+                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="colorValueLoss" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
+                                    <stop offset="50%" stopColor="#ef4444" stopOpacity={0.15} />
+                                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke="#374151"
+                                vertical={true}
+                                horizontal={true}
+                                opacity={0.6}
+                            />
+                            <XAxis
+                                dataKey="displayDate"
+                                stroke="#6B7280"
+                                tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 500 }}
+                                tickLine={{ stroke: '#4B5563' }}
+                                axisLine={{ stroke: '#4B5563', strokeWidth: 2 }}
+                                minTickGap={40}
+                                dy={8}
+                            />
+                            <YAxis
+                                stroke="#6B7280"
+                                tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 500 }}
+                                tickLine={{ stroke: '#4B5563' }}
+                                axisLine={{ stroke: '#4B5563', strokeWidth: 2 }}
+                                tickFormatter={(value) => `₹${value.toLocaleString('en-IN')}`}
+                                dx={-5}
+                                width={80}
+                            />
+                            <Tooltip content={<CustomTooltip />} />
+                            <ReferenceLine
+                                y={0}
+                                stroke="#6B7280"
+                                strokeWidth={1.5}
+                                strokeDasharray="4 4"
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="value"
+                                stroke={stats?.current && stats.current >= 0 ? "#10b981" : "#ef4444"}
+                                strokeWidth={3}
+                                fillOpacity={1}
+                                fill={stats?.current && stats.current >= 0 ? "url(#colorValue)" : "url(#colorValueLoss)"}
+                                dot={false}
+                                activeDot={{
+                                    r: 6,
+                                    stroke: stats?.current && stats.current >= 0 ? "#10b981" : "#ef4444",
+                                    strokeWidth: 2,
+                                    fill: "#1f2937"
+                                }}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-center">
+                        <Calendar className="w-12 h-12 text-zinc-600 mb-4" />
+                        <p className="text-zinc-400 font-medium">No trades in this period</p>
+                        <p className="text-zinc-600 text-sm mt-1">Select a different time range or &quot;ALL&quot; to view all data</p>
+                    </div>
+                )}
             </div>
 
             {/* Stats Footer */}

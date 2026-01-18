@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { History, TrendingUp, TrendingDown, Calendar, ArrowUpDown, Filter, Edit2, Trash2, X, Save, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EquityCurve from '@/components/EquityCurve';
+import MonthlyPerformance from '@/components/MonthlyPerformance';
 
 interface Trade {
     id: string;
@@ -171,7 +172,7 @@ export default function HistoryPage() {
             <div className="min-h-[60vh] flex items-center justify-center pt-20">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-                    <p className="text-zinc-500 text-sm">Loading trade history...</p>
+                    <p style={{ color: 'var(--text-muted)' }} className="text-sm">Loading trade history...</p>
                 </div>
             </div>
         );
@@ -196,24 +197,26 @@ export default function HistoryPage() {
                 </div>
 
                 {/* Date Filter */}
-                <div className="flex items-center gap-3 bg-zinc-900/50 p-1.5 rounded-xl border border-white/5">
-                    <span className="text-sm font-medium text-zinc-400 pl-2">Date Filter:</span>
+                <div className="flex items-center gap-3 p-1.5 rounded-xl" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-visible)' }}>
+                    <span className="text-sm font-medium pl-2" style={{ color: 'var(--text-muted)' }}>Date Filter:</span>
                     <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                         <input
                             type="date"
                             value={dateFilter}
                             onChange={(e) => setDateFilter(e.target.value)}
-                            className="bg-transparent border-none text-white text-sm focus:ring-0 pl-10 pr-2 py-1 w-40 placeholder-zinc-600"
+                            className="bg-transparent border-none text-sm focus:ring-0 pl-10 pr-2 py-1 w-40"
+                            style={{ color: 'var(--text-primary)' }}
                         />
                     </div>
                     {dateFilter && (
                         <button
                             onClick={() => setDateFilter('')}
-                            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-1 rounded-lg transition-colors"
                             title="Clear filter"
+                            style={{ color: 'var(--text-muted)' }}
                         >
-                            <X className="w-4 h-4 text-zinc-400" />
+                            <X className="w-4 h-4" />
                         </button>
                     )}
                 </div>
@@ -241,6 +244,11 @@ export default function HistoryPage() {
                 </div>
             </div>
 
+            {/* Monthly Performance Calendar */}
+            {trades.length > 0 && (
+                <MonthlyPerformance trades={trades} />
+            )}
+
             {/* Equity Curve Chart */}
             {settings && trades.length >= 2 && (
                 <EquityCurve
@@ -254,9 +262,9 @@ export default function HistoryPage() {
             {/* Trades Table */}
             {trades.length === 0 ? (
                 <div className="card p-12 text-center">
-                    <Filter className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-                    <p className="text-zinc-400 text-lg">No trades found</p>
-                    <p className="text-zinc-600 text-sm mt-1">
+                    <Filter className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
+                    <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>No trades found</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
                         {dateFilter ? 'Try selecting a different date' : 'Start logging trades to see them here'}
                     </p>
                 </div>
@@ -300,7 +308,7 @@ export default function HistoryPage() {
                                         className="table-row"
                                     >
                                         <td className="table-cell">
-                                            <span className="text-zinc-300 font-medium">
+                                            <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
                                                 {new Date(trade.trade_date).toLocaleDateString('en-IN', {
                                                     day: '2-digit',
                                                     month: 'short',
@@ -312,7 +320,7 @@ export default function HistoryPage() {
                                             <span className="text-[var(--text-primary)] font-medium">{trade.trade_name}</span>
                                         </td>
                                         <td className="table-cell">
-                                            <span className="text-zinc-500 text-sm">{trade.comments || '-'}</span>
+                                            <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{trade.comments || '-'}</span>
                                         </td>
                                         <td className="table-cell text-right">
                                             <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -381,7 +389,8 @@ export default function HistoryPage() {
                                     <h2 className="text-xl font-bold text-[var(--text-primary)]">Edit Trade</h2>
                                     <button
                                         onClick={() => setEditingTrade(null)}
-                                        className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                                        className="p-2 rounded-lg transition-colors"
+                                        style={{ color: 'var(--text-muted)' }}
                                     >
                                         <X className="w-5 h-5 text-zinc-400" />
                                     </button>
