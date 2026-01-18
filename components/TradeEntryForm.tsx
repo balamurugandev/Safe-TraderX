@@ -364,8 +364,8 @@ export default function TradeEntryForm({
                             <Plus className="w-5 h-5 text-emerald-400" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-white">Log Trade</h3>
-                            <p className="text-xs text-zinc-500">
+                            <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Log Trade</h3>
+                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                                 {tradesRemaining}/{maxTradesPerDay} trades remaining
                             </p>
                         </div>
@@ -501,7 +501,7 @@ export default function TradeEntryForm({
                 {/* Comments Field */}
                 <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-zinc-500" />
+                        <MessageSquare className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
                         <label className="label">Comments (Optional)</label>
                     </div>
                     <input

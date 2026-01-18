@@ -160,7 +160,7 @@ export default function Dashboard() {
       <div className="min-h-[60vh] flex items-center justify-center pt-20">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-          <p className="text-zinc-500 text-sm">Initializing trading system...</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Initializing trading system...</p>
         </div>
       </div>
     );
@@ -307,8 +307,8 @@ export default function Dashboard() {
         {/* Date/Time Header */}
         <motion.div variants={item} className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">{todayFormatted}</h1>
-            <p className="text-zinc-500 text-sm">Trading Session</p>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)]">{todayFormatted}</h1>
+            <p className="text-[var(--text-muted)] text-sm">Trading Session</p>
           </div>
           <div className="flex items-center gap-4">
             {/* Streak */}
@@ -319,10 +319,10 @@ export default function Dashboard() {
                 <span className="text-orange-400/70 text-xs">day streak</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-zinc-400">
+            <div className="flex items-center gap-2 text-[var(--text-muted)]">
               <Clock className="w-4 h-4" />
               <span className="font-mono text-lg">{formatTimeIST(currentTime)}</span>
-              <span className="text-xs text-zinc-600">IST</span>
+              <span className="text-xs text-[var(--text-muted)]">IST</span>
             </div>
           </div>
         </motion.div>
@@ -388,25 +388,25 @@ export default function Dashboard() {
                 <div className="card p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <Calculator className="w-4 h-4 text-blue-400" />
-                    <h3 className="font-semibold text-white text-sm">Brokerage & Tax</h3>
+                    <h3 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>Brokerage & Tax</h3>
                   </div>
                   <div className="grid grid-cols-4 gap-3 text-center text-sm">
                     <div>
-                      <p className="text-[10px] text-zinc-400 mb-1">Gross</p>
+                      <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>Gross</p>
                       <p className={`font-mono font-bold ${grossPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {grossPnL >= 0 ? '+' : ''}₹{grossPnL.toLocaleString('en-IN')}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-zinc-400 mb-1">Brokerage</p>
+                      <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>Brokerage</p>
                       <p className="font-mono text-yellow-400">-₹{(brokerageTotal * 1.18).toFixed(0)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-zinc-400 mb-1">STT</p>
+                      <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>STT</p>
                       <p className="font-mono text-yellow-400">-₹{estimatedTaxes.toFixed(0)}</p>
                     </div>
-                    <div className="bg-white/5 rounded-lg p-1">
-                      <p className="text-[10px] text-zinc-400 mb-1">Net</p>
+                    <div className="rounded-lg p-1" style={{ background: 'var(--bg-elevated)' }}>
+                      <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>Net</p>
                       <p className={`font-mono font-bold ${netPnL >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {netPnL >= 0 ? '+' : ''}₹{netPnL.toFixed(0)}
                       </p>
@@ -462,12 +462,12 @@ export default function Dashboard() {
             <motion.div variants={item} className="space-y-3">
               <div className="flex items-center justify-between px-2">
                 <h2 className="label">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}&apos;s Activity</h2>
-                <span className="text-xs text-zinc-600">{trades.length} trades</span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{trades.length} trades</span>
               </div>
 
               {trades.length === 0 ? (
                 <div className="card p-8 text-center border-dashed">
-                  <p className="text-zinc-500">No trades logged yet</p>
+                  <p style={{ color: 'var(--text-muted)' }}>No trades logged yet</p>
                 </div>
               ) : (
                 <div className="table-container">
@@ -490,7 +490,7 @@ export default function Dashboard() {
                             className="table-row"
                           >
                             <td className="table-cell">
-                              <span className="text-zinc-400 text-sm">
+                              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
                                 {new Date(trade.created_at).toLocaleTimeString('en-IN', {
                                   hour: '2-digit',
                                   minute: '2-digit',
@@ -500,9 +500,9 @@ export default function Dashboard() {
                             </td>
                             <td className="table-cell">
                               <div>
-                                <span className="text-white font-medium text-sm">{trade.trade_name}</span>
+                                <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>{trade.trade_name}</span>
                                 {trade.setup_type && (
-                                  <p className="text-zinc-500 text-xs capitalize">{trade.setup_type.replace('_', ' ')}</p>
+                                  <p className="text-xs capitalize" style={{ color: 'var(--text-muted)' }}>{trade.setup_type.replace('_', ' ')}</p>
                                 )}
                               </div>
                             </td>
@@ -568,7 +568,7 @@ function StatCard({
       </div>
       <p className="label mb-2">{label}</p>
       <p className={`text-2xl font-bold ${valueColors[variant]}`}>{value}</p>
-      <p className="text-xs text-zinc-300 mt-1 font-mono">{subtext}</p>
+      <p className="text-xs mt-1 font-mono" style={{ color: 'var(--text-secondary)' }}>{subtext}</p>
     </motion.div>
   );
 }

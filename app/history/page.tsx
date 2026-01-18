@@ -190,8 +190,8 @@ export default function HistoryPage() {
                         <History className="w-6 h-6 text-blue-400" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Trade History</h1>
-                        <p className="text-sm text-zinc-500">All your recorded trades</p>
+                        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Trade History</h1>
+                        <p className="text-sm text-[var(--text-muted)]">All your recorded trades</p>
                     </div>
                 </div>
 
@@ -223,7 +223,7 @@ export default function HistoryPage() {
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div className="card p-4">
                     <p className="label mb-1">Total Trades</p>
-                    <p className="text-2xl font-bold text-white">{trades.length}</p>
+                    <p className="text-2xl font-bold text-[var(--text-primary)]">{trades.length}</p>
                 </div>
                 <div className="card p-4">
                     <p className="label mb-1">Winning</p>
@@ -309,7 +309,7 @@ export default function HistoryPage() {
                                             </span>
                                         </td>
                                         <td className="table-cell">
-                                            <span className="text-white font-medium">{trade.trade_name}</span>
+                                            <span className="text-[var(--text-primary)] font-medium">{trade.trade_name}</span>
                                         </td>
                                         <td className="table-cell">
                                             <span className="text-zinc-500 text-sm">{trade.comments || '-'}</span>
@@ -378,7 +378,7 @@ export default function HistoryPage() {
                             <div className="card p-6 space-y-6">
                                 {/* Header */}
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-xl font-bold text-white">Edit Trade</h2>
+                                    <h2 className="text-xl font-bold text-[var(--text-primary)]">Edit Trade</h2>
                                     <button
                                         onClick={() => setEditingTrade(null)}
                                         className="p-2 rounded-lg hover:bg-white/10 transition-colors"
@@ -484,8 +484,8 @@ export default function HistoryPage() {
                                     <Trash2 className="w-6 h-6 text-red-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-white">Delete Trade?</h3>
-                                    <p className="text-sm text-zinc-500">This action cannot be undone.</p>
+                                    <h3 className="text-lg font-bold text-[var(--text-primary)]">Delete Trade?</h3>
+                                    <p className="text-sm text-[var(--text-muted)]">This action cannot be undone.</p>
                                 </div>
                             </div>
 

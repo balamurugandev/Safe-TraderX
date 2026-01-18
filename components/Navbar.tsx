@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Settings, History, Zap } from 'lucide-react';
+import { LayoutDashboard, Settings, History, Zap, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function Navbar() {
     const pathname = usePathname();
+    const { theme, toggleTheme } = useTheme();
 
     return (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-4">
@@ -14,21 +16,21 @@ export default function Navbar() {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-lg shadow-slate-200/50"
+                className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-[var(--bg-card)]/90 backdrop-blur-xl border border-[var(--border-visible)] shadow-lg"
             >
                 {/* Logo */}
                 <Link
                     href="/"
-                    className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-[var(--bg-elevated)] transition-colors"
                 >
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
                         <Zap className="w-4 h-4 text-white" />
                     </div>
-                    <span className="font-bold text-slate-900 hidden sm:block">Safe TradeX</span>
+                    <span className="font-bold text-[var(--text-primary)] hidden sm:block">Safe TradeX</span>
                 </Link>
 
                 {/* Divider */}
-                <div className="h-6 w-px bg-slate-200 mx-2" />
+                <div className="h-6 w-px bg-[var(--border-visible)] mx-2" />
 
                 {/* Nav Links */}
                 <NavLink
@@ -49,6 +51,22 @@ export default function Navbar() {
                     label="Settings"
                     active={pathname === '/settings'}
                 />
+
+                {/* Divider */}
+                <div className="h-6 w-px bg-[var(--border-visible)] mx-2" />
+
+                {/* Theme Toggle */}
+                <button
+                    onClick={toggleTheme}
+                    className="p-2 rounded-full hover:bg-[var(--bg-elevated)] transition-colors text-[var(--text-secondary)]"
+                    title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                >
+                    {theme === 'light' ? (
+                        <Moon className="w-5 h-5" />
+                    ) : (
+                        <Sun className="w-5 h-5" />
+                    )}
+                </button>
             </motion.nav>
         </div>
     );
@@ -71,15 +89,15 @@ function NavLink({
             className={`
         relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300
         ${active
-                    ? 'text-indigo-600 bg-indigo-50'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-400'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
                 }
       `}
         >
             {active && (
                 <motion.div
                     layoutId="nav-indicator"
-                    className="absolute inset-0 bg-gradient-to-r from-indigo-100 to-transparent rounded-full"
+                    className="absolute inset-0 bg-gradient-to-r from-indigo-100 dark:from-indigo-500/20 to-transparent rounded-full"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
             )}

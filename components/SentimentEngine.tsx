@@ -37,22 +37,22 @@ export function SentimentVerdictCard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`card p-4 ${verdictColor === 'emerald'
-                ? 'border-emerald-200 shadow-lg shadow-emerald-100'
+                ? 'border-emerald-500/30 dark:border-emerald-400/30'
                 : verdictColor === 'red'
-                    ? 'border-red-200 shadow-lg shadow-red-100'
+                    ? 'border-red-500/30 dark:border-red-400/30'
                     : verdictColor === 'yellow'
-                        ? 'border-yellow-200 shadow-lg shadow-yellow-100'
+                        ? 'border-yellow-500/30 dark:border-yellow-400/30'
                         : ''
                 }`}
         >
             <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                    <p className="text-xs text-slate-500 uppercase tracking-wider">Market Verdict</p>
-                    <p className={`text-lg font-bold ${verdictColor === 'emerald' ? 'text-emerald-600'
-                        : verdictColor === 'red' ? 'text-red-600'
-                            : verdictColor === 'yellow' ? 'text-yellow-600'
-                                : 'text-slate-600'
-                        }`}>
+                    <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Market Verdict</p>
+                    <p className={`text-lg font-bold ${verdictColor === 'emerald' ? 'text-emerald-600 dark:text-emerald-400'
+                        : verdictColor === 'red' ? 'text-red-600 dark:text-red-400'
+                            : verdictColor === 'yellow' ? 'text-yellow-600 dark:text-yellow-400'
+                                : ''
+                        }`} style={{ color: verdictColor === 'emerald' ? undefined : verdictColor === 'red' ? undefined : verdictColor === 'yellow' ? undefined : 'var(--text-secondary)' }}>
                         {result.verdictLabel}
                     </p>
 
@@ -68,7 +68,7 @@ export function SentimentVerdictCard() {
                             {result.convictionLabel}
                         </span>
                         {state.supportLevel && state.resistanceLevel && (
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                                 Range: {state.supportLevel} - {state.resistanceLevel}
                             </span>
                         )}
@@ -87,7 +87,7 @@ export function SentimentVerdictCard() {
                             <circle cx="50" cy="55" r="4" fill="#1E293B" />
                         </g>
                     </svg>
-                    <p className="text-center text-xs font-mono text-slate-700">{result.convictionScore}%</p>
+                    <p className="text-center text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>{result.convictionScore}%</p>
                 </div>
             </div>
 
@@ -101,9 +101,9 @@ export function SentimentVerdictCard() {
                         className="mt-3 space-y-2"
                     >
                         {result.warnings.map((warning, i) => (
-                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200">
-                                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                                <p className="text-xs text-amber-700">{warning}</p>
+                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                                <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                <p className="text-xs text-amber-600 dark:text-amber-400">{warning}</p>
                             </div>
                         ))}
                     </motion.div>
@@ -134,12 +134,12 @@ export function SentimentInputForm() {
         >
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-100 rounded-lg">
-                    <Activity className="w-5 h-5 text-indigo-600" />
+                <div className="p-2 bg-indigo-500/20 rounded-lg">
+                    <Activity className="w-5 h-5 text-indigo-500" />
                 </div>
                 <div>
-                    <h3 className="font-semibold text-slate-900">Market Sentiment Engine</h3>
-                    <p className="text-xs text-slate-500">Configure your market read</p>
+                    <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Market Sentiment Engine</h3>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Configure your market read</p>
                 </div>
             </div>
 
@@ -147,57 +147,57 @@ export function SentimentInputForm() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {/* CPR Type */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-600">CPR Type</label>
+                    <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>CPR Type</label>
                     <div className="relative">
                         <select
                             value={state.cprType}
                             onChange={(e) => updateField('cprType', e.target.value as CPRType)}
-                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 appearance-none cursor-pointer focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                            className="input appearance-none cursor-pointer"
                         >
                             <option value="narrow">Narrow CPR</option>
                             <option value="wide">Wide CPR</option>
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
                     </div>
                 </div>
 
                 {/* VIX Range */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-600">India VIX</label>
+                    <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>India VIX</label>
                     <div className="relative">
                         <select
                             value={state.vixRange}
                             onChange={(e) => updateField('vixRange', e.target.value as VIXRange)}
-                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 appearance-none cursor-pointer focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                            className="input appearance-none cursor-pointer"
                         >
                             {Object.entries(VIX_LABELS).map(([value, label]) => (
                                 <option key={value} value={value}>{label}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
                     </div>
                 </div>
 
                 {/* OI Build-up */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-600">OI Build-up</label>
+                    <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>OI Build-up</label>
                     <div className="relative">
                         <select
                             value={state.oiBuildUp}
                             onChange={(e) => updateField('oiBuildUp', e.target.value as OIBuildUp)}
-                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 appearance-none cursor-pointer focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                            className="input appearance-none cursor-pointer"
                         >
                             {Object.entries(OI_LABELS).map(([value, label]) => (
                                 <option key={value} value={value}>{label}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
                     </div>
                 </div>
 
                 {/* PCR Value */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-600">PCR (Put-Call Ratio)</label>
+                    <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>PCR (Put-Call Ratio)</label>
                     <input
                         type="number"
                         step="0.1"
@@ -205,51 +205,52 @@ export function SentimentInputForm() {
                         max="1.6"
                         value={state.pcrValue}
                         onChange={(e) => updateField('pcrValue', parseFloat(e.target.value) || 1.0)}
-                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                        className="input font-mono"
                     />
                 </div>
 
                 {/* Support Level */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-600">Nifty Support</label>
+                    <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Nifty Support</label>
                     <input
                         type="text"
                         placeholder="e.g., 23800"
                         value={state.supportLevel}
                         onChange={(e) => updateField('supportLevel', e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                        className="input font-mono"
                     />
                 </div>
 
                 {/* Resistance Level */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-600">Nifty Resistance</label>
+                    <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Nifty Resistance</label>
                     <input
                         type="text"
                         placeholder="e.g., 24200"
                         value={state.resistanceLevel}
                         onChange={(e) => updateField('resistanceLevel', e.target.value)}
-                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                        className="input font-mono"
                     />
                 </div>
             </div>
 
             {/* Global Cues Toggle */}
             <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-600">Global Cues</label>
-                <div className="flex bg-slate-100 p-1 rounded-lg">
+                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Global Cues</label>
+                <div className="flex p-1 rounded-lg" style={{ background: 'var(--bg-elevated)' }}>
                     {(['positive', 'neutral', 'negative'] as GlobalCues[]).map((cue) => (
                         <button
                             key={cue}
                             onClick={() => updateField('globalCues', cue)}
                             className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2 ${state.globalCues === cue
                                 ? cue === 'positive'
-                                    ? 'bg-emerald-100 text-emerald-700 shadow-sm'
+                                    ? 'bg-emerald-500/20 text-emerald-500 shadow-sm'
                                     : cue === 'negative'
-                                        ? 'bg-red-100 text-red-700 shadow-sm'
-                                        : 'bg-yellow-100 text-yellow-700 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700'
+                                        ? 'bg-red-500/20 text-red-500 shadow-sm'
+                                        : 'bg-yellow-500/20 text-yellow-500 shadow-sm'
+                                : ''
                                 }`}
+                            style={state.globalCues !== cue ? { color: 'var(--text-muted)' } : undefined}
                         >
                             {cue === 'positive' && <TrendingUp className="w-4 h-4" />}
                             {cue === 'neutral' && <Minus className="w-4 h-4" />}
@@ -265,7 +266,7 @@ export function SentimentInputForm() {
                 <button
                     onClick={handleLogSentiment}
                     disabled={isLogging}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-xl transition-all shadow-lg shadow-indigo-200"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-xl transition-all shadow-lg shadow-indigo-500/30"
                 >
                     {isLogging ? (
                         <>
@@ -286,7 +287,7 @@ export function SentimentInputForm() {
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0, opacity: 0 }}
-                            className="flex items-center gap-2 px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg"
+                            className="flex items-center gap-2 px-3 py-2 bg-emerald-500/20 text-emerald-500 rounded-lg"
                         >
                             <CheckCircle2 className="w-4 h-4" />
                             <span className="text-sm font-medium">Logged!</span>

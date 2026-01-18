@@ -46,10 +46,10 @@ export default function QuotesMarquee() {
     const allQuotes = [...TRADING_QUOTES, ...TRADING_QUOTES];
 
     return (
-        <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white py-3 shadow-sm">
+        <div className="relative overflow-hidden rounded-xl py-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-visible)' }}>
             {/* Gradient masks */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10" />
-            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10" />
+            <div className="absolute left-0 top-0 bottom-0 w-16 z-10" style={{ background: 'linear-gradient(to right, var(--bg-card), transparent)' }} />
+            <div className="absolute right-0 top-0 bottom-0 w-16 z-10" style={{ background: 'linear-gradient(to left, var(--bg-card), transparent)' }} />
 
             <motion.div
                 className="flex items-center gap-12 whitespace-nowrap"
@@ -68,8 +68,8 @@ export default function QuotesMarquee() {
                 {allQuotes.map((quote, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
                         <Quote className="w-3 h-3 text-indigo-500 flex-shrink-0" />
-                        <span className="text-slate-600 italic">"{quote.text}"</span>
-                        <span className="text-indigo-600 font-medium">— {quote.author}</span>
+                        <span className="italic" style={{ color: 'var(--text-secondary)' }}>"{quote.text}"</span>
+                        <span className="font-medium text-indigo-500">— {quote.author}</span>
                     </div>
                 ))}
             </motion.div>
