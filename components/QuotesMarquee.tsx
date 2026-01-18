@@ -19,7 +19,7 @@ const TRADING_QUOTES = [
     // On the Danger of Over-Scalping
     { text: "Trading more doesn't make you a better trader; it just makes your broker richer.", author: "Jack Schwager" },
     { text: "The more trades you take, the more you invite the 'Law of Averages' to take your money back.", author: "Mark Douglas" },
-    { text: "A scalper’s greatest skill is knowing when the market is too noisy to trade.", author: "Bill Lipschutz" },
+    { text: "A scalper's greatest skill is knowing when the market is too noisy to trade.", author: "Bill Lipschutz" },
     { text: "Overtrading is the result of trying to force the market to give you what it doesn't have.", author: "Alexander Elder" },
     { text: "Every extra click of the mouse increases the probability of a mistake.", author: "Martin Schwartz" },
     { text: "If you're scalping and find yourself sweating, you've either taken too many trades or too much size.", author: "Larry Hite" },
@@ -46,10 +46,10 @@ export default function QuotesMarquee() {
     const allQuotes = [...TRADING_QUOTES, ...TRADING_QUOTES];
 
     return (
-        <div className="relative overflow-hidden rounded-xl border border-white/5 bg-white/[0.02] py-3">
+        <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white py-3 shadow-sm">
             {/* Gradient masks */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#1a1a24] to-transparent z-10" />
-            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#1a1a24] to-transparent z-10" />
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10" />
 
             <motion.div
                 className="flex items-center gap-12 whitespace-nowrap"
@@ -67,9 +67,9 @@ export default function QuotesMarquee() {
             >
                 {allQuotes.map((quote, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
-                        <Quote className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                        <span className="text-zinc-200 italic">"{quote.text}"</span>
-                        <span className="text-emerald-400/80 font-medium">— {quote.author}</span>
+                        <Quote className="w-3 h-3 text-indigo-500 flex-shrink-0" />
+                        <span className="text-slate-600 italic">"{quote.text}"</span>
+                        <span className="text-indigo-600 font-medium">— {quote.author}</span>
                     </div>
                 ))}
             </motion.div>

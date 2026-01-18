@@ -14,21 +14,21 @@ export default function Navbar() {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-[#22222e]/90 backdrop-blur-xl border border-white/10 shadow-lg"
+                className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200 shadow-lg shadow-slate-200/50"
             >
                 {/* Logo */}
                 <Link
                     href="/"
-                    className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-white/5 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 transition-colors"
                 >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
                         <Zap className="w-4 h-4 text-white" />
                     </div>
-                    <span className="font-bold text-white hidden sm:block">Safe TradeX</span>
+                    <span className="font-bold text-slate-900 hidden sm:block">Safe TradeX</span>
                 </Link>
 
                 {/* Divider */}
-                <div className="h-6 w-px bg-white/10 mx-2" />
+                <div className="h-6 w-px bg-slate-200 mx-2" />
 
                 {/* Nav Links */}
                 <NavLink
@@ -71,15 +71,15 @@ function NavLink({
             className={`
         relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300
         ${active
-                    ? 'text-white bg-white/10'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    ? 'text-indigo-600 bg-indigo-50'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }
       `}
         >
             {active && (
                 <motion.div
                     layoutId="nav-indicator"
-                    className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-transparent rounded-full"
+                    className="absolute inset-0 bg-gradient-to-r from-indigo-100 to-transparent rounded-full"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
             )}

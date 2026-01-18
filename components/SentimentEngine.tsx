@@ -25,7 +25,7 @@ export function SentimentVerdictCard() {
             case 'bullish': return 'emerald';
             case 'bearish': return 'red';
             case 'sideways': return 'yellow';
-            default: return 'zinc';
+            default: return 'slate';
         }
     };
 
@@ -37,38 +37,38 @@ export function SentimentVerdictCard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className={`card p-4 ${verdictColor === 'emerald'
-                    ? 'border-emerald-500/30 shadow-lg shadow-emerald-500/10'
-                    : verdictColor === 'red'
-                        ? 'border-red-500/30 shadow-lg shadow-red-500/10'
-                        : verdictColor === 'yellow'
-                            ? 'border-yellow-500/30 shadow-lg shadow-yellow-500/10'
-                            : ''
+                ? 'border-emerald-200 shadow-lg shadow-emerald-100'
+                : verdictColor === 'red'
+                    ? 'border-red-200 shadow-lg shadow-red-100'
+                    : verdictColor === 'yellow'
+                        ? 'border-yellow-200 shadow-lg shadow-yellow-100'
+                        : ''
                 }`}
         >
             <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                    <p className="text-xs text-zinc-500 uppercase tracking-wider">Market Verdict</p>
-                    <p className={`text-lg font-bold ${verdictColor === 'emerald' ? 'text-emerald-400'
-                            : verdictColor === 'red' ? 'text-red-400'
-                                : verdictColor === 'yellow' ? 'text-yellow-400'
-                                    : 'text-zinc-400'
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">Market Verdict</p>
+                    <p className={`text-lg font-bold ${verdictColor === 'emerald' ? 'text-emerald-600'
+                        : verdictColor === 'red' ? 'text-red-600'
+                            : verdictColor === 'yellow' ? 'text-yellow-600'
+                                : 'text-slate-600'
                         }`}>
                         {result.verdictLabel}
                     </p>
 
                     <div className="flex items-center gap-2">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${result.convictionLabel === 'High Conviction'
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : result.convictionLabel === 'Medium Conviction'
-                                    ? 'bg-yellow-500/20 text-yellow-400'
-                                    : 'bg-red-500/20 text-red-400'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : result.convictionLabel === 'Medium Conviction'
+                                ? 'bg-yellow-100 text-yellow-700'
+                                : 'bg-red-100 text-red-700'
                             }`}>
                             {result.convictionLabel === 'High Conviction' && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
                             {result.convictionLabel === 'Low/Avoid' && <XCircle className="w-3 h-3 inline mr-1" />}
                             {result.convictionLabel}
                         </span>
                         {state.supportLevel && state.resistanceLevel && (
-                            <span className="text-xs text-zinc-500">
+                            <span className="text-xs text-slate-500">
                                 Range: {state.supportLevel} - {state.resistanceLevel}
                             </span>
                         )}
@@ -78,16 +78,16 @@ export function SentimentVerdictCard() {
                 {/* Sentiment Gauge */}
                 <div className="relative w-20 h-12">
                     <svg viewBox="0 0 100 60" className="w-full h-full">
-                        <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="#333" strokeWidth="8" strokeLinecap="round" />
-                        <path d="M 10 55 A 40 40 0 0 1 30 20" fill="none" stroke="#ef4444" strokeWidth="8" strokeLinecap="round" opacity="0.6" />
-                        <path d="M 30 20 A 40 40 0 0 1 70 20" fill="none" stroke="#eab308" strokeWidth="8" strokeLinecap="round" opacity="0.6" />
-                        <path d="M 70 20 A 40 40 0 0 1 90 55" fill="none" stroke="#10b981" strokeWidth="8" strokeLinecap="round" opacity="0.6" />
+                        <path d="M 10 55 A 40 40 0 0 1 90 55" fill="none" stroke="#E2E8F0" strokeWidth="8" strokeLinecap="round" />
+                        <path d="M 10 55 A 40 40 0 0 1 30 20" fill="none" stroke="#ef4444" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
+                        <path d="M 30 20 A 40 40 0 0 1 70 20" fill="none" stroke="#eab308" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
+                        <path d="M 70 20 A 40 40 0 0 1 90 55" fill="none" stroke="#10b981" strokeWidth="8" strokeLinecap="round" opacity="0.7" />
                         <g transform={`rotate(${gaugeRotation}, 50, 55)`}>
-                            <line x1="50" y1="55" x2="50" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                            <circle cx="50" cy="55" r="4" fill="white" />
+                            <line x1="50" y1="55" x2="50" y2="22" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" />
+                            <circle cx="50" cy="55" r="4" fill="#1E293B" />
                         </g>
                     </svg>
-                    <p className="text-center text-xs font-mono text-white">{result.convictionScore}%</p>
+                    <p className="text-center text-xs font-mono text-slate-700">{result.convictionScore}%</p>
                 </div>
             </div>
 
@@ -101,9 +101,9 @@ export function SentimentVerdictCard() {
                         className="mt-3 space-y-2"
                     >
                         {result.warnings.map((warning, i) => (
-                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                                <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                                <p className="text-xs text-amber-300">{warning}</p>
+                            <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-amber-50 border border-amber-200">
+                                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                <p className="text-xs text-amber-700">{warning}</p>
                             </div>
                         ))}
                     </motion.div>
@@ -134,12 +134,12 @@ export function SentimentInputForm() {
         >
             {/* Header */}
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                    <Activity className="w-5 h-5 text-purple-400" />
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                    <Activity className="w-5 h-5 text-indigo-600" />
                 </div>
                 <div>
-                    <h3 className="font-semibold text-white">Market Sentiment Engine</h3>
-                    <p className="text-xs text-zinc-400">Configure your market read</p>
+                    <h3 className="font-semibold text-slate-900">Market Sentiment Engine</h3>
+                    <p className="text-xs text-slate-500">Configure your market read</p>
                 </div>
             </div>
 
@@ -147,57 +147,57 @@ export function SentimentInputForm() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {/* CPR Type */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400">CPR Type</label>
+                    <label className="text-xs font-medium text-slate-600">CPR Type</label>
                     <div className="relative">
                         <select
                             value={state.cprType}
                             onChange={(e) => updateField('cprType', e.target.value as CPRType)}
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50"
+                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 appearance-none cursor-pointer focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         >
                             <option value="narrow">Narrow CPR</option>
                             <option value="wide">Wide CPR</option>
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     </div>
                 </div>
 
                 {/* VIX Range */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400">India VIX</label>
+                    <label className="text-xs font-medium text-slate-600">India VIX</label>
                     <div className="relative">
                         <select
                             value={state.vixRange}
                             onChange={(e) => updateField('vixRange', e.target.value as VIXRange)}
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50"
+                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 appearance-none cursor-pointer focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         >
                             {Object.entries(VIX_LABELS).map(([value, label]) => (
                                 <option key={value} value={value}>{label}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     </div>
                 </div>
 
                 {/* OI Build-up */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400">OI Build-up</label>
+                    <label className="text-xs font-medium text-slate-600">OI Build-up</label>
                     <div className="relative">
                         <select
                             value={state.oiBuildUp}
                             onChange={(e) => updateField('oiBuildUp', e.target.value as OIBuildUp)}
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white appearance-none cursor-pointer focus:ring-2 focus:ring-purple-500/50"
+                            className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 appearance-none cursor-pointer focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                         >
                             {Object.entries(OI_LABELS).map(([value, label]) => (
                                 <option key={value} value={value}>{label}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                     </div>
                 </div>
 
                 {/* PCR Value */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400">PCR (Put-Call Ratio)</label>
+                    <label className="text-xs font-medium text-slate-600">PCR (Put-Call Ratio)</label>
                     <input
                         type="number"
                         step="0.1"
@@ -205,50 +205,50 @@ export function SentimentInputForm() {
                         max="1.6"
                         value={state.pcrValue}
                         onChange={(e) => updateField('pcrValue', parseFloat(e.target.value) || 1.0)}
-                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono focus:ring-2 focus:ring-purple-500/50"
+                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                     />
                 </div>
 
                 {/* Support Level */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400">Nifty Support</label>
+                    <label className="text-xs font-medium text-slate-600">Nifty Support</label>
                     <input
                         type="text"
                         placeholder="e.g., 23800"
                         value={state.supportLevel}
                         onChange={(e) => updateField('supportLevel', e.target.value)}
-                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:ring-2 focus:ring-purple-500/50"
+                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                     />
                 </div>
 
                 {/* Resistance Level */}
                 <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-400">Nifty Resistance</label>
+                    <label className="text-xs font-medium text-slate-600">Nifty Resistance</label>
                     <input
                         type="text"
                         placeholder="e.g., 24200"
                         value={state.resistanceLevel}
                         onChange={(e) => updateField('resistanceLevel', e.target.value)}
-                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-mono placeholder-zinc-600 focus:ring-2 focus:ring-purple-500/50"
+                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                     />
                 </div>
             </div>
 
             {/* Global Cues Toggle */}
             <div className="space-y-2">
-                <label className="text-xs font-medium text-zinc-400">Global Cues</label>
-                <div className="flex bg-zinc-900/50 p-1 rounded-lg border border-white/10">
+                <label className="text-xs font-medium text-slate-600">Global Cues</label>
+                <div className="flex bg-slate-100 p-1 rounded-lg">
                     {(['positive', 'neutral', 'negative'] as GlobalCues[]).map((cue) => (
                         <button
                             key={cue}
                             onClick={() => updateField('globalCues', cue)}
                             className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2 ${state.globalCues === cue
-                                    ? cue === 'positive'
-                                        ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30'
-                                        : cue === 'negative'
-                                            ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/30'
-                                            : 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/30'
-                                    : 'text-zinc-500 hover:text-white'
+                                ? cue === 'positive'
+                                    ? 'bg-emerald-100 text-emerald-700 shadow-sm'
+                                    : cue === 'negative'
+                                        ? 'bg-red-100 text-red-700 shadow-sm'
+                                        : 'bg-yellow-100 text-yellow-700 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
                             {cue === 'positive' && <TrendingUp className="w-4 h-4" />}
@@ -265,7 +265,7 @@ export function SentimentInputForm() {
                 <button
                     onClick={handleLogSentiment}
                     disabled={isLogging}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 hover:bg-purple-500 disabled:bg-purple-600/50 text-white font-medium rounded-xl transition-all"
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-xl transition-all shadow-lg shadow-indigo-200"
                 >
                     {isLogging ? (
                         <>
@@ -286,7 +286,7 @@ export function SentimentInputForm() {
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0, opacity: 0 }}
-                            className="flex items-center gap-2 px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg"
+                            className="flex items-center gap-2 px-3 py-2 bg-emerald-100 text-emerald-700 rounded-lg"
                         >
                             <CheckCircle2 className="w-4 h-4" />
                             <span className="text-sm font-medium">Logged!</span>
