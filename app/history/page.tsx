@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { History, TrendingUp, TrendingDown, Calendar, ArrowUpDown, Filter, Edit2, Trash2, X, Save, AlertTriangle } from 'lucide-react';
+import { History, TrendingUp, TrendingDown, Calendar, ArrowUpDown, Filter, Edit2, Trash2, X, Save, AlertTriangle, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EquityCurve from '@/components/EquityCurve';
 import MonthlyPerformance from '@/components/MonthlyPerformance';
@@ -28,11 +28,15 @@ interface Settings {
 
 export default function HistoryPage() {
     const [trades, setTrades] = useState<Trade[]>([]);
+    const [allTrades, setAllTrades] = useState<Trade[]>([]);
     const [settings, setSettings] = useState<Settings | null>(null);
     const [loading, setLoading] = useState(true);
     const [sortField, setSortField] = useState<'trade_date' | 'pnl_amount'>('trade_date');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-    const [dateFilter, setDateFilter] = useState('');
+    const [dateFilter, setDateFilter] = useState(() => {
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    });
+    const [allTimePnL, setAllTimePnL] = useState(0);
 
     // Edit modal state
     const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
@@ -76,6 +80,19 @@ export default function HistoryPage() {
 
             if (error) throw error;
             if (data) setTrades(data);
+
+            // Fetch All-Time Trades for Balance Calculation & Equity Curve
+            const { data: allTradesData, error: allTimeError } = await supabase
+                .from('daily_trades')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (allTradesData && !allTimeError) {
+                setAllTrades(allTradesData);
+                const total = allTradesData.reduce((sum, t) => sum + (t.pnl_amount || 0), 0);
+                setAllTimePnL(total);
+            }
+
         } catch (error) {
             console.error('Error fetching trades:', error);
         } finally {
@@ -223,7 +240,27 @@ export default function HistoryPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                <div className="card p-4 relative group">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Wallet className="w-4 h-4 text-zinc-400" />
+                        <p className="label">Capital</p>
+                        <div className="group relative">
+                            <div className="w-4 h-4 rounded-full border border-zinc-600 flex items-center justify-center text-[10px] text-zinc-400 cursor-help">?</div>
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-2 bg-zinc-800 rounded-lg border border-zinc-700 text-xs text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl">
+                                Current Equity = Initial Capital + All-Time Net P&L
+                            </div>
+                        </div>
+                    </div>
+                    <p className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)]">
+                        ₹{settings ? ((settings.starting_capital + allTimePnL) / 1000).toFixed(1) + 'K' : '---'}
+                    </p>
+                    {settings && (
+                        <p className="text-xs font-mono text-[var(--text-muted)] mt-1">
+                            Initial: ₹{(settings.starting_capital / 1000).toFixed(0)}K
+                        </p>
+                    )}
+                </div>
                 <div className="card p-4">
                     <p className="label mb-1">Total Trades</p>
                     <p className="text-2xl font-bold text-[var(--text-primary)]">{trades.length}</p>
@@ -249,10 +286,10 @@ export default function HistoryPage() {
                 <MonthlyPerformance trades={trades} />
             )}
 
-            {/* Equity Curve Chart */}
-            {settings && trades.length >= 2 && (
+            {/* Equity Curve Chart - Shows FULL history regardless of table filter */}
+            {settings && (
                 <EquityCurve
-                    trades={trades}
+                    trades={allTrades}
                     brokeragePerTrade={settings.brokerage_per_order}
                     startingCapital={settings.starting_capital}
                     maxDrawdownPercent={10}
@@ -320,7 +357,7 @@ export default function HistoryPage() {
                                             <span className="text-[var(--text-primary)] font-medium">{trade.trade_name}</span>
                                         </td>
                                         <td className="table-cell">
-                                            <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{trade.comments || '-'}</span>
+                                            <span className="text-sm text-zinc-300">{trade.comments || '-'}</span>
                                         </td>
                                         <td className="table-cell text-right">
                                             <span className={`font-mono font-bold ${trade.pnl_amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>

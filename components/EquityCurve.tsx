@@ -27,13 +27,16 @@ export default function EquityCurve({
     maxDrawdownPercent = 10,
     startingCapital
 }: EquityCurveProps) {
-    const [timeRange, setTimeRange] = useState<TimeRange>('30D');
+    const [timeRange, setTimeRange] = useState<TimeRange>('ALL');
 
     const chartData = useMemo(() => {
-        // Sort trades by date
-        const sorted = [...trades].sort((a, b) =>
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
+        // Sort trades by date (Primary: Trade Date, Secondary: Created At)
+        const sorted = [...trades].sort((a, b) => {
+            const dateA = new Date(a.trade_date).getTime();
+            const dateB = new Date(b.trade_date).getTime();
+            if (dateA !== dateB) return dateA - dateB;
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        });
 
         // Calculate cumulative net P&L by day
         const dailyData: { [date: string]: number } = {};
@@ -50,7 +53,7 @@ export default function EquityCurve({
         let points = Object.entries(dailyData).map(([date, value]) => ({
             date,
             value,
-            displayDate: new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+            displayDate: new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }),
             tooltipDate: new Date(date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
@@ -63,7 +66,7 @@ export default function EquityCurve({
             points.unshift({
                 date: startDate.toISOString().split('T')[0],
                 value: 0,
-                displayDate: startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+                displayDate: startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }),
                 tooltipDate: startDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
             });
         }
@@ -72,6 +75,7 @@ export default function EquityCurve({
         if (timeRange !== 'ALL') {
             const now = new Date();
             const cutoff = new Date();
+            cutoff.setHours(0, 0, 0, 0); // Include full start day
 
             switch (timeRange) {
                 case '7D':
@@ -85,11 +89,16 @@ export default function EquityCurve({
                     break;
             }
 
-            points = points.filter(p => new Date(p.date) >= cutoff);
+            points = points.filter(p => {
+                const pointDate = new Date(p.date);
+                // Treat pointDate as start of day for valid comparison
+                return pointDate >= cutoff;
+            });
         }
 
         return points;
     }, [trades, brokeragePerTrade, timeRange]);
+
 
     const stats = useMemo(() => {
         if (chartData.length === 0) return null;
