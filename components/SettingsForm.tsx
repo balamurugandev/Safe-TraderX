@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Save, CheckCircle2, AlertCircle, Wallet, TrendingDown, TrendingUp, Hash, IndianRupee, Flame, Package } from 'lucide-react';
+import { Save, CheckCircle2, AlertCircle, Wallet, TrendingDown, TrendingUp, Hash, IndianRupee, Flame, Package, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function SettingsForm() {
@@ -21,6 +21,15 @@ export default function SettingsForm() {
     });
 
     const [streak, setStreak] = useState(0);
+    const [editingFields, setEditingFields] = useState<Record<string, boolean>>({});
+    const [initialData, setInitialData] = useState<any>(null);
+
+    // Deep compare check for dirty state
+    const isDirty = initialData && JSON.stringify(formData) !== JSON.stringify(initialData);
+
+    const toggleEdit = (field: string) => {
+        setEditingFields(prev => ({ ...prev, [field]: !prev[field] }));
+    };
 
     useEffect(() => {
         fetchSettings();
@@ -36,7 +45,7 @@ export default function SettingsForm() {
             if (error && error.code !== 'PGRST116') throw error;
 
             if (data) {
-                setFormData({
+                const fetchedData = {
                     starting_capital: data.starting_capital || 0,
                     max_daily_loss_percent: data.max_daily_loss_percent || 2,
                     daily_profit_target_percent: data.daily_profit_target_percent || 5,
@@ -44,7 +53,9 @@ export default function SettingsForm() {
                     brokerage_per_order: data.brokerage_per_order || 20,
                     max_lot_size: data.max_lot_size || 50,
                     lot_value: data.lot_value || 50,
-                });
+                };
+                setFormData(fetchedData);
+                setInitialData(fetchedData);
                 setStreak(data.current_streak || 0);
             }
         } catch (error) {
@@ -86,6 +97,11 @@ export default function SettingsForm() {
 
             if (error) throw error;
             setMessage({ type: 'success', text: 'Configuration saved successfully' });
+
+            // Reset dirty state
+            setInitialData({ ...formData });
+            setEditingFields({});
+
         } catch (error: any) {
             setMessage({ type: 'error', text: error.message });
         } finally {
@@ -165,12 +181,16 @@ export default function SettingsForm() {
                             <div className="flex items-center gap-2">
                                 <Wallet className="w-4 h-4 text-zinc-500" />
                                 <label className="label">Starting Capital (₹)</label>
+                                <button type="button" onClick={() => toggleEdit('starting_capital')} className="ml-auto text-zinc-500 hover:text-white transition-colors">
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                </button>
                             </div>
                             <input
                                 type="number"
+                                disabled={!editingFields['starting_capital']}
                                 value={formData.starting_capital || ''}
                                 onChange={(e) => setFormData({ ...formData, starting_capital: parseFloat(e.target.value) || 0 })}
-                                className="input"
+                                className={`input ${!editingFields['starting_capital'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 placeholder="100000"
                                 required
                             />
@@ -183,13 +203,17 @@ export default function SettingsForm() {
                                 <div className="flex items-center gap-2">
                                     <TrendingDown className="w-4 h-4 text-red-400" />
                                     <label className="label">Max Loss %</label>
+                                    <button type="button" onClick={() => toggleEdit('max_daily_loss_percent')} className="ml-auto text-zinc-500 hover:text-white transition-colors">
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                                 <input
                                     type="number"
                                     step="0.1"
+                                    disabled={!editingFields['max_daily_loss_percent']}
                                     value={formData.max_daily_loss_percent || ''}
                                     onChange={(e) => setFormData({ ...formData, max_daily_loss_percent: parseFloat(e.target.value) || 0 })}
-                                    className="input input-danger"
+                                    className={`input input-danger ${!editingFields['max_daily_loss_percent'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="2.0"
                                     required
                                 />
@@ -205,13 +229,17 @@ export default function SettingsForm() {
                                 <div className="flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4 text-emerald-400" />
                                     <label className="label">Profit Target %</label>
+                                    <button type="button" onClick={() => toggleEdit('daily_profit_target_percent')} className="ml-auto text-zinc-500 hover:text-white transition-colors">
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                                 <input
                                     type="number"
                                     step="0.1"
+                                    disabled={!editingFields['daily_profit_target_percent']}
                                     value={formData.daily_profit_target_percent || ''}
                                     onChange={(e) => setFormData({ ...formData, daily_profit_target_percent: parseFloat(e.target.value) || 0 })}
-                                    className="input"
+                                    className={`input ${!editingFields['daily_profit_target_percent'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="5.0"
                                     required
                                 />
@@ -230,12 +258,16 @@ export default function SettingsForm() {
                                 <div className="flex items-center gap-2">
                                     <Hash className="w-4 h-4 text-blue-400" />
                                     <label className="label">Max Trades/Day</label>
+                                    <button type="button" onClick={() => toggleEdit('max_trades_per_day')} className="ml-auto text-zinc-500 hover:text-white transition-colors">
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                                 <input
                                     type="number"
+                                    disabled={!editingFields['max_trades_per_day']}
                                     value={formData.max_trades_per_day || ''}
                                     onChange={(e) => setFormData({ ...formData, max_trades_per_day: parseInt(e.target.value) || 10 })}
-                                    className="input"
+                                    className={`input ${!editingFields['max_trades_per_day'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="10"
                                     required
                                 />
@@ -246,12 +278,16 @@ export default function SettingsForm() {
                                 <div className="flex items-center gap-2">
                                     <IndianRupee className="w-4 h-4 text-yellow-400" />
                                     <label className="label">Brokerage/Order (₹)</label>
+                                    <button type="button" onClick={() => toggleEdit('brokerage_per_order')} className="ml-auto text-zinc-500 hover:text-white transition-colors">
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                                 <input
                                     type="number"
+                                    disabled={!editingFields['brokerage_per_order']}
                                     value={formData.brokerage_per_order || ''}
                                     onChange={(e) => setFormData({ ...formData, brokerage_per_order: parseFloat(e.target.value) || 20 })}
-                                    className="input"
+                                    className={`input ${!editingFields['brokerage_per_order'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="20"
                                     required
                                 />
@@ -265,12 +301,16 @@ export default function SettingsForm() {
                                 <div className="flex items-center gap-2">
                                     <Package className="w-4 h-4 text-orange-400" />
                                     <label className="label">Max Lots/Trade</label>
+                                    <button type="button" onClick={() => toggleEdit('max_lot_size')} className="ml-auto text-zinc-500 hover:text-white transition-colors">
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                                 <input
                                     type="number"
+                                    disabled={!editingFields['max_lot_size']}
                                     value={formData.max_lot_size || ''}
                                     onChange={(e) => setFormData({ ...formData, max_lot_size: parseInt(e.target.value) || 50 })}
-                                    className="input"
+                                    className={`input ${!editingFields['max_lot_size'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="50"
                                     required
                                 />
@@ -282,12 +322,16 @@ export default function SettingsForm() {
                                 <div className="flex items-center gap-2">
                                     <IndianRupee className="w-4 h-4 text-orange-400" />
                                     <label className="label">Point Value (₹)</label>
+                                    <button type="button" onClick={() => toggleEdit('lot_value')} className="ml-auto text-zinc-500 hover:text-white transition-colors">
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
                                 <input
                                     type="number"
+                                    disabled={!editingFields['lot_value']}
                                     value={formData.lot_value || ''}
                                     onChange={(e) => setFormData({ ...formData, lot_value: parseFloat(e.target.value) || 50 })}
-                                    className="input"
+                                    className={`input ${!editingFields['lot_value'] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="50"
                                     required
                                 />
@@ -301,7 +345,7 @@ export default function SettingsForm() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         type="submit"
-                        disabled={saving}
+                        disabled={saving || !isDirty}
                         className="btn-primary w-full text-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {saving ? (

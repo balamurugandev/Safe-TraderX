@@ -103,6 +103,8 @@ export default function Dashboard() {
     }
   }, []);
 
+  const [openingEquity, setOpeningEquity] = useState(0);
+
   const fetchData = useCallback(async () => {
     try {
       const { data: settingsData } = await supabase
@@ -110,9 +112,11 @@ export default function Dashboard() {
         .select('*')
         .single();
 
+      let baseCapital = 0;
       if (settingsData) {
+        baseCapital = settingsData.starting_capital || 0;
         setSettings({
-          starting_capital: settingsData.starting_capital || 0,
+          starting_capital: baseCapital,
           max_daily_loss_percent: settingsData.max_daily_loss_percent || 2,
           daily_profit_target_percent: settingsData.daily_profit_target_percent || 5,
           max_trades_per_day: settingsData.max_trades_per_day || 10,
@@ -122,17 +126,26 @@ export default function Dashboard() {
       }
 
       const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-      const { data: tradesData } = await supabase
+
+      // Fetch ALL trades to calculate dynamic equity
+      const { data: allTrades } = await supabase
         .from('daily_trades')
         .select('*')
-        .eq('trade_date', today)
         .order('created_at', { ascending: false });
 
-      if (tradesData) {
-        setTrades(tradesData);
+      if (allTrades) {
+        // Separate Today's trades from Past trades
+        const todaysTrades = allTrades.filter(t => t.trade_date === today);
+        const pastTrades = allTrades.filter(t => t.trade_date < today);
 
-        // Check for last loss
-        const lastLoss = tradesData.find(t => t.pnl_amount < 0);
+        const pastPnL = pastTrades.reduce((sum, t) => sum + t.pnl_amount, 0);
+        const dynamicOpeningEquity = baseCapital + pastPnL;
+
+        setOpeningEquity(dynamicOpeningEquity);
+        setTrades(todaysTrades); // Only show today's trades in the table/list
+
+        // Check for last loss (in today's trades)
+        const lastLoss = todaysTrades.find(t => t.pnl_amount < 0);
         if (lastLoss) {
           const lossTime = new Date(lastLoss.created_at);
           const now = new Date();
@@ -246,9 +259,11 @@ export default function Dashboard() {
   const estimatedTaxes = Math.abs(grossPnL) * 0.001; // ~0.1% estimate
   const netPnL = grossPnL - brokerageTotal - estimatedTaxes;
 
-  const currentPnlPct = settings.starting_capital > 0 ? (grossPnL / settings.starting_capital) * 100 : 0;
-  const maxLossAmount = settings.starting_capital * settings.max_daily_loss_percent / 100;
-  const profitTargetAmount = settings.starting_capital * settings.daily_profit_target_percent / 100;
+  const currentPnlPct = openingEquity > 0 ? (grossPnL / openingEquity) * 100 : 0;
+
+  // Dynamic Limits based on Opening Equity
+  const maxLossAmount = openingEquity * settings.max_daily_loss_percent / 100;
+  const profitTargetAmount = openingEquity * settings.daily_profit_target_percent / 100;
 
   const isMaxLossReached = grossPnL <= -maxLossAmount;
   const isProfitTargetReached = grossPnL >= profitTargetAmount;
@@ -355,8 +370,8 @@ export default function Dashboard() {
             <StatCard
               icon={<Wallet className="w-4 h-4" />}
               label="Capital"
-              value={`₹${((settings.starting_capital + netPnL) / 1000).toFixed(1)}K`}
-              subtext={`Initial: ₹${(settings.starting_capital / 1000).toFixed(0)}K`}
+              value={`₹${(openingEquity + netPnL).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+              subtext={`Open Equity: ₹${openingEquity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
               variant="default" // Force default variant color logic but we will override font size if needed
               isBalance={true}
             />
@@ -557,7 +572,7 @@ function StatCard({
         {icon}
       </div>
       <p className="label mb-2">{label}</p>
-      <p className={`${isBalance ? 'text-3xl lg:text-4xl' : 'text-2xl'} font-bold ${valueColors[variant]}`}>{value}</p>
+      <p className={`${isBalance ? 'text-2xl lg:text-3xl' : 'text-2xl'} font-bold ${valueColors[variant]}`}>{value}</p>
       <p className="text-xs mt-1 font-mono" style={{ color: 'var(--text-secondary)' }}>{subtext}</p>
     </motion.div>
   );

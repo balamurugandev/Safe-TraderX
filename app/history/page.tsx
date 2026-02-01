@@ -253,11 +253,11 @@ export default function HistoryPage() {
                         </div>
                     </div>
                     <p className="text-3xl lg:text-4xl font-bold text-[var(--text-primary)]">
-                        ₹{settings ? ((settings.starting_capital + allTimePnL) / 1000).toFixed(1) + 'K' : '---'}
+                        ₹{settings ? (settings.starting_capital + allTimePnL).toLocaleString('en-IN') : '---'}
                     </p>
                     {settings && (
                         <p className="text-xs font-mono text-[var(--text-muted)] mt-1">
-                            Initial: ₹{(settings.starting_capital / 1000).toFixed(0)}K
+                            Initial: ₹{settings.starting_capital.toLocaleString('en-IN')}
                         </p>
                     )}
                 </div>

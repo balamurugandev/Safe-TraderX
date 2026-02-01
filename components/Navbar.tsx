@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Settings, History, Zap, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Settings, History, Zap, Sun, Moon, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -44,6 +44,12 @@ export default function Navbar() {
                     icon={<History className="w-4 h-4" />}
                     label="History"
                     active={pathname === '/history'}
+                />
+                <NavLink
+                    href="/projections"
+                    icon={<Target className="w-4 h-4" />}
+                    label="Projections"
+                    active={pathname === '/projections'}
                 />
                 <NavLink
                     href="/settings"

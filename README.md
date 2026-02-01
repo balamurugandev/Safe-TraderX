@@ -36,11 +36,17 @@ A discipline-focused trading journal for Indian options traders. Built to help y
 - **Detailed Stats**: Win rate, average profit/loss, and drawdown tracking.
 
 ### ⚙️ Settings
-- Starting capital configuration
+- Starting capital configuration with Edit Mode protection
 - Max daily loss % and profit target %
 - Max trades per day limit
 - Brokerage per order setting
 - Trading streak tracking
+
+### 🔮 Projections & Growth
+- **Hybrid Projections**: "Projected End" compounds daily while "Start Balance" resets to reality, keeping goals grounded.
+- **Dynamic Capital**: Dashboard calculations based on *Current Equity* (Start Cap + All Past PnL), not just static Start Cap.
+- **Gap Simulation**: Visualizes the difference between your theoretical compounded growth and actual performance.
+- **Monthly Progress**: Visual progress bars tracking monthly goal completion.
 
 ## 🛠️ Tech Stack
 
