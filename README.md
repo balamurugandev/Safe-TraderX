@@ -8,18 +8,20 @@ A discipline-focused trading journal for Indian options traders. Built to help y
 
 ## ✨ Features
 
-### 📊 Dashboard (3-Column Desktop Layout)
-- **Real-time P&L tracking** with gross and net calculations
-- **Brokerage & tax estimator** (includes GST, STT, exchange charges)
-- **Trade counter** with configurable daily limits
-- **Kill switch** - auto-locks trading when max loss or profit target is hit
-- **Live IST clock** for session awareness
+### 📊 Dashboard (3-Column Layout)
+- **Smart Capital Tracking**: Displays real-time Equity (Initial Capital + All-Time Net P&L).
+- **Real-time P&L**: Live gross and net P&L calculations.
+- **Brokerage Estimator**: Auto-calculates brokerage, STT, and taxes.
+- **Session Stats**: Live win/loss ratio, streak tracking, and current session clock (IST).
+- **Kill Switch**: Auto-locks trading when Max Loss or Profit Target is hit.
 
-### 📝 Trade Entry
-- Quick trade logging with script name, P&L, setup type, and market state
-- **Emotional checklist** - post-trade reflection for FOMO/Revenge awareness
-- **Cool-off timer** after losses (configurable)
-- **Post-trade pause** to prevent overtrading
+### 📝 Smart Trade Entry
+- **Contextual Logging**: Capture Setup Type (VWAP, Breakout, etc.) and Market State (Trending, Choppy, etc.).
+- **Emotional Checklist**: Mandatory post-trade reflection to detect FOMO/Revenge trading.
+- **Discipline Enforcers**:
+    - **Cool-off Timer**: Forced 15-min break after a loss.
+    - **Strategic Pause**: 5-min reflection period after every trade.
+    - **Max Trade Limit**: Hard cap on daily number of trades.
 
 ### ⚠️ Behavioral Safeguards
 - **Persistent warning banners** for emotional trades (FOMO/Revenge)
@@ -27,11 +29,11 @@ A discipline-focused trading journal for Indian options traders. Built to help y
 - **Panic button** with motivational quotes and circuit breaker
 - Market state warnings for Sideways/Choppy conditions
 
-### 📈 History & Analytics
-- Full trade history with edit/delete functionality
-- Cumulative P&L tracking
-- Date range filtering
-- Setup and market state analysis
+### 📈 Analytics & Visualization
+- **Equity Curve**: Interactive chart showing account growth over time with 7D/30D/ALL filters.
+- **Performance Calendar**: Monthly calendar view heatmap of daily P&L.
+- **Trade History**: Searchable, filterable history with edit/delete capabilities.
+- **Detailed Stats**: Win rate, average profit/loss, and drawdown tracking.
 
 ### ⚙️ Settings
 - Starting capital configuration
