@@ -282,8 +282,8 @@ export default function HistoryPage() {
             </div>
 
             {/* Monthly Performance Calendar */}
-            {trades.length > 0 && (
-                <MonthlyPerformance trades={trades} />
+            {allTrades.length > 0 && (
+                <MonthlyPerformance trades={allTrades} />
             )}
 
             {/* Equity Curve Chart - Shows FULL history regardless of table filter */}

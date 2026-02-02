@@ -16,13 +16,6 @@ interface MonthlyPerformanceProps {
 
 function formatCurrency(value: number): string {
     const absValue = Math.abs(value);
-    if (absValue >= 10000000) {
-        return `${(absValue / 10000000).toFixed(1)}Cr`;
-    } else if (absValue >= 100000) {
-        return `${(absValue / 100000).toFixed(1)}L`;
-    } else if (absValue >= 1000) {
-        return `${(absValue / 1000).toFixed(1)}K`;
-    }
     return value === 0 ? '₹0' : `₹${absValue.toLocaleString('en-IN')}`;
 }
 
@@ -135,7 +128,7 @@ export default function MonthlyPerformance({ trades }: MonthlyPerformanceProps) 
                                 return (
                                     <div
                                         key={dayIndex}
-                                        className="h-10"
+                                        className="h-[80px]"
                                         style={{
                                             background: 'var(--bg-primary)',
                                             borderRight: isLastCol ? 'none' : '1px solid var(--border-visible)',
@@ -167,17 +160,17 @@ export default function MonthlyPerformance({ trades }: MonthlyPerformanceProps) 
                             return (
                                 <div
                                     key={dayIndex}
-                                    className="h-10 flex flex-col items-center justify-center transition-all hover:brightness-110"
+                                    className="h-[80px] flex flex-col items-center justify-center transition-all hover:brightness-110"
                                     style={{
                                         background: bgColor,
                                         borderRight: isLastCol ? 'none' : '1px solid var(--border-visible)',
                                         borderBottom: isLastRow ? 'none' : '1px solid var(--border-visible)'
                                     }}
                                 >
-                                    <span className="text-[11px] font-semibold" style={{ color: hasTrade ? dayColor : 'var(--text-primary)' }}>
+                                    <span className="text-sm font-semibold mb-1" style={{ color: hasTrade ? dayColor : 'var(--text-primary)' }}>
                                         {day}
                                     </span>
-                                    <span className="text-[9px] font-bold" style={{ color: valueColor }}>
+                                    <span className="text-sm font-bold" style={{ color: valueColor }}>
                                         {displayValue}
                                     </span>
                                 </div>

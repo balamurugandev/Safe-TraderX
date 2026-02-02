@@ -40,6 +40,7 @@ interface DayData {
     targetPercent: number;
     projectedGain: number;
     projectedEndBalance: number;
+    goalEndBalance: number;
 
     // Reality
     actualPnL: number | null;
@@ -237,8 +238,11 @@ export default function ProjectionsPage() {
             end: endOfMonth(currentDate)
         });
 
-        // Initialize Compounding Balance Tracker
+        // Initialize Compounding Balance Tracker (Dynamic)
         let compoundingBalance = openingBalance;
+
+        // Initialize Static Goal Tracker (Started from Opening Balance of Month)
+        let staticGoalBalance = openingBalance;
 
         // Calculate "Latest Actual Balance" (Today's End Balance) for the static display in future
         const tradesUntilToday = trades.filter(t => t.trade_date <= todayStr);
@@ -267,6 +271,9 @@ export default function ProjectionsPage() {
             const targetObj = targets.find(t => t.date === dateStr);
             const targetPct = targetObj ? targetObj.target_percentage : 1.0;
 
+            // ------------------------------------------
+            // 1. Dynamic Forecast Logic (Compounding / Hybrid)
+            // ------------------------------------------
             // Logic Split:
             // 1. Calculation Base (What number are we growing?)
             //    - If Actual exists, we grow from there.
@@ -279,8 +286,6 @@ export default function ProjectionsPage() {
             let calcStartBal = compoundingBalance;
 
             // Override calcStart for TODAY to be strict Morning Balance if needed? 
-            // Actually, compoundingBalance generally tracks accurately from yesterday.
-            // But let's apply the same "Today Strictness" fix from before if desirable.
             if (isToday(day)) {
                 const pastPnLStrict = trades
                     .filter(t => t.trade_date < dateStr)
@@ -289,7 +294,7 @@ export default function ProjectionsPage() {
                 compoundingBalance = calcStartBal; // Sync up transparency
             }
 
-            // Calculate Projections
+            // Calculate Projections (Dynamic)
             const projGain = calcStartBal * (targetPct / 100);
             const projEnd = calcStartBal + projGain;
 
@@ -298,7 +303,7 @@ export default function ProjectionsPage() {
             const actPct = dayPnL !== null ? (dayPnL / calcStartBal) * 100 : null;
             const variance = dayPnL !== null ? dayPnL - projGain : null;
 
-            // Update Compounding Tracker for NEXT day
+            // Update Compounding Tracker for NEXT day (Dynamic)
             if (dayPnL !== null) {
                 // Actual trade happens -> Reset compounding path to Reality
                 compoundingBalance = actEnd!;
@@ -306,10 +311,17 @@ export default function ProjectionsPage() {
                 // Future -> Compounding continues from projected end
                 compoundingBalance = projEnd;
             } else {
-                // Past, No Trade -> Compounding pauses (Flat)? 
-                // Or typically we say "If I missed yesterday, my balance is same".
+                // Past, No Trade -> Compounding pauses (Flat)
                 compoundingBalance = calcStartBal;
             }
+
+            // ------------------------------------------
+            // 2. Static Goal Logic (Fixed Path)
+            // ------------------------------------------
+            // Always grows from previous static balance, ignoring Reality.
+            const goalGain = staticGoalBalance * (targetPct / 100);
+            const goalEnd = staticGoalBalance + goalGain;
+            staticGoalBalance = goalEnd; // Update for next iteration
 
             // Determine Display Values
             let displayStartBal = calcStartBal;
@@ -326,10 +338,11 @@ export default function ProjectionsPage() {
                 dateStr,
                 isToday: isToday(day),
                 isFuture: isFuture(day),
-                startBalance: displayStartBal, // Shows Static in Future
+                startBalance: displayStartBal,
                 targetPercent: targetPct,
                 projectedGain: projGain,
-                projectedEndBalance: projEnd, // Shows Compounded in Future
+                projectedEndBalance: projEnd, // Dynamic Forecast
+                goalEndBalance: goalEnd,      // Static Goal
                 actualPnL: dayPnL,
                 actualPercent: actPct,
                 actualEndBalance: actEnd,
@@ -454,36 +467,24 @@ export default function ProjectionsPage() {
     // ------------------- Summary Stats -------------------
 
     const monthStartBal = tableData.length > 0 ? tableData[0].startBalance : 0;
-    const monthEndProj = tableData.length > 0 ? tableData[tableData.length - 1].projectedEndBalance : 0;
-    // Reality End: Use the running balance carried forward from the last day
-    // Reality End: Should always be Real Capital + PnL up to end of this month.
-    // If future, it will just be "Current Capital" (since no future trades).
-    const isFutureView = isFuture(startOfMonth(currentDate));
+    const monthEndForecast = tableData.length > 0 ? tableData[tableData.length - 1].projectedEndBalance : 0;
+    const monthStaticGoal = tableData.length > 0 ? tableData[tableData.length - 1].goalEndBalance : 0;
 
+    // Reality End
+    const isFutureView = isFuture(startOfMonth(currentDate));
     const relevantTrades = trades.filter(t => t.trade_date <= format(endOfMonth(currentDate), 'yyyy-MM-dd'));
     const totalAccumulatedPnL = relevantTrades.reduce((sum, t) => sum + t.pnl_amount, 0);
-
     const monthEndReality = (settings?.starting_capital || 0) + totalAccumulatedPnL;
 
-    const monthProjectedGain = monthEndProj - monthStartBal;
-    // Actual Gain for this month: PnL sum for THIS month only?
-    // "Current Reality" box usually shows "Total Balance".
-    // Subtext shows Gain.
-    // Let's keep "Current Reality" as Total Balance.
-
-    // For the subtext "+₹ Gain (Limit%)", we probably want the gain relative to the START of this month.
-    // But if Start was Simulated, Variance is huge.
-    // If user wants "Original Current Balance" in the box, then we show `monthEndReality`.
-
-    // Gain relative to what?
-    // If I started with 49k (Projected) and I have 27k (Real), my gain is negative?
-    // Or is it just "Gain made in March"? (Which is 0).
-    // Let's calculate "Month Specific Actual Gain".
+    // Gains logic
     const tradesInMonth = trades.filter(t =>
         t.trade_date >= format(startOfMonth(currentDate), 'yyyy-MM-dd') &&
         t.trade_date <= format(endOfMonth(currentDate), 'yyyy-MM-dd')
     );
     const monthActualGain = tradesInMonth.reduce((sum, t) => sum + t.pnl_amount, 0);
+
+    // Goal Gain (Static specific to this month)
+    const monthGoalGain = monthStaticGoal - monthStartBal;
 
     if (loading) {
         return <div className="min-h-screen pt-24 text-center text-zinc-500">Loading projections...</div>;
@@ -518,7 +519,23 @@ export default function ProjectionsPage() {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-                {/* Yearly Target Amount (Replaces Starting Balance) */}
+                <SummaryCard
+                    label="Current Reality"
+                    value={monthEndReality}
+                    subtext={`${monthActualGain >= 0 ? '+' : ''}₹${monthActualGain.toLocaleString('en-IN')} vs Goal ₹${monthGoalGain.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                    icon={<Wallet className={monthActualGain >= monthGoalGain ? "text-emerald-400" : "text-blue-400"} />}
+                    glow={monthActualGain >= monthGoalGain ? "emerald" : "blue"}
+                />
+
+                <SummaryCard
+                    label="Monthly Target"
+                    value={monthStaticGoal}
+                    subtext={`Forecast: ₹${monthEndForecast.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
+                    icon={<Target className="text-purple-400" />}
+                    glow="purple"
+                    progress={(monthEndReality / monthStaticGoal) * 100}
+                />
+
                 {/* Yearly Target Amount (Editable) */}
                 <div className="card p-5 shadow-[0_0_30px_rgba(234,179,8,0.15)] border-yellow-500/30 relative">
                     <div className="flex justify-between items-start mb-2">
@@ -561,22 +578,6 @@ export default function ProjectionsPage() {
 
                     <p className="text-xs text-zinc-400 mt-1">Amount</p>
                 </div>
-
-                <SummaryCard
-                    label="Projected End (Month)"
-                    value={monthEndProj}
-                    subtext={`+₹${monthProjectedGain.toLocaleString('en-IN')} (${((monthProjectedGain / monthStartBal) * 100).toFixed(1)}%)`}
-                    icon={<TrendingUp className="text-purple-400" />}
-                    glow="purple"
-                    progress={(monthEndReality / monthEndProj) * 100}
-                />
-                <SummaryCard
-                    label="Current Reality"
-                    value={monthEndReality}
-                    subtext={`${monthActualGain >= 0 ? '+' : ''}₹${monthActualGain.toLocaleString('en-IN')} (${((monthActualGain / monthStartBal) * 100).toFixed(1)}%)`}
-                    icon={<Wallet className={monthActualGain >= monthProjectedGain ? "text-emerald-400" : "text-blue-400"} />}
-                    glow={monthActualGain >= monthProjectedGain ? "emerald" : "blue"}
-                />
 
                 {/* Bulk Update Card (Replaces Monthly Target Display) */}
                 <div className={`card p-5 relative overflow-hidden transition-colors border-zinc-800 ${isBulkEditing ? 'bg-zinc-900/80 border-purple-500/50' : 'bg-zinc-900/40'}`}>

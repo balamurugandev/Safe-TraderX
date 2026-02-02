@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={`${inter.className} min-h-screen flex flex-col`} suppressHydrationWarning>
         <Providers>
           <Navbar />
           <main className="flex-1 max-w-[1920px] mx-auto w-full px-3 lg:px-6 py-6">
