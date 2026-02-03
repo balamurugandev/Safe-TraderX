@@ -8,6 +8,8 @@ interface Trade {
     id: string;
     pnl_amount: number;
     trade_date: string;
+    trade_name?: string;
+    comments?: string;
 }
 
 interface MonthlyPerformanceProps {
@@ -31,6 +33,11 @@ export default function MonthlyPerformance({ trades }: MonthlyPerformanceProps) 
         const dailyTotals: { [day: number]: number } = {};
 
         trades.forEach(trade => {
+            // Filter out Capital Adjustments from Performance View
+            if (trade.comments === 'CAPITAL_ADJUSTMENT' || trade.trade_name === 'DEPOSIT' || trade.trade_name === 'WITHDRAWAL') {
+                return;
+            }
+
             const tradeDate = new Date(trade.trade_date);
             if (tradeDate.getFullYear() === year && tradeDate.getMonth() === month) {
                 const day = tradeDate.getDate();

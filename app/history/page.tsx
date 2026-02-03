@@ -173,9 +173,11 @@ export default function HistoryPage() {
         }
     };
 
-    const totalPnL = trades.reduce((sum, t) => sum + t.pnl_amount, 0);
-    const winningTrades = trades.filter(t => t.pnl_amount > 0);
-    const losingTrades = trades.filter(t => t.pnl_amount < 0);
+    // Exclude Capital Adjustments from Stats
+    const statsTrades = trades.filter(t => t.comments !== 'CAPITAL_ADJUSTMENT');
+    const totalPnL = statsTrades.reduce((sum, t) => sum + t.pnl_amount, 0);
+    const winningTrades = statsTrades.filter(t => t.pnl_amount > 0);
+    const losingTrades = statsTrades.filter(t => t.pnl_amount < 0);
 
     // Calculate cumulative P&L for each trade
     let cumulative = 0;
@@ -183,6 +185,13 @@ export default function HistoryPage() {
         cumulative += trade.pnl_amount;
         return { ...trade, cumulative };
     });
+
+    // Exclude Capital Adjustments from Charts (Performance View)
+    const statsAllTrades = allTrades.filter(t =>
+        t.comments !== 'CAPITAL_ADJUSTMENT' &&
+        t.trade_name !== 'DEPOSIT' &&
+        t.trade_name !== 'WITHDRAWAL'
+    );
 
     if (loading) {
         return (
@@ -283,13 +292,13 @@ export default function HistoryPage() {
 
             {/* Monthly Performance Calendar */}
             {allTrades.length > 0 && (
-                <MonthlyPerformance trades={allTrades} />
+                <MonthlyPerformance trades={statsAllTrades} />
             )}
 
             {/* Equity Curve Chart - Shows FULL history regardless of table filter */}
             {settings && (
                 <EquityCurve
-                    trades={allTrades}
+                    trades={statsAllTrades}
                     brokeragePerTrade={settings.brokerage_per_order}
                     startingCapital={settings.starting_capital}
                     maxDrawdownPercent={10}

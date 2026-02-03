@@ -11,6 +11,8 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterv
 interface DailyTrade {
     trade_date: string;
     pnl_amount: number;
+    trade_name?: string;
+    comments?: string;
 }
 
 interface DailyTarget {
@@ -114,7 +116,7 @@ export default function ProjectionsPage() {
 
             const { data: allTrades } = await supabase
                 .from('daily_trades')
-                .select('trade_date, pnl_amount')
+                .select('*') // Fetched all columns to access comments/trade_name
                 .order('trade_date', { ascending: true });
 
             // Determine the start date for fetching targets.
@@ -263,9 +265,18 @@ export default function ProjectionsPage() {
                 return;
             }
 
-            // Find trade for this day
+            // Find trades for this day
             const dayTrades = trades.filter(t => t.trade_date === dateStr);
-            const dayPnL = dayTrades.length > 0 ? dayTrades.reduce((sum, t) => sum + t.pnl_amount, 0) : null;
+
+            // Split Trading vs Capital Adjustments
+            const adjustmentTrades = dayTrades.filter(t => t.pnl_amount && (t.comments === 'CAPITAL_ADJUSTMENT' || t.trade_name === 'DEPOSIT' || t.trade_name === 'WITHDRAWAL'));
+            const tradingTrades = dayTrades.filter(t => !adjustmentTrades.includes(t));
+
+            const tradingPnL = tradingTrades.length > 0 ? tradingTrades.reduce((sum, t) => sum + t.pnl_amount, 0) : null;
+            const adjustmentPnL = adjustmentTrades.reduce((sum, t) => sum + t.pnl_amount, 0);
+
+            // "dayPnL" for target purposes is STRICTLY trading PnL
+            const dayPnL = tradingPnL;
 
             // Find target for this day
             const targetObj = targets.find(t => t.date === dateStr);
@@ -299,7 +310,8 @@ export default function ProjectionsPage() {
             const projEnd = calcStartBal + projGain;
 
             // Calculate Reality
-            const actEnd = dayPnL !== null ? calcStartBal + dayPnL : null;
+            // Calculate Reality
+            const actEnd = dayPnL !== null || adjustmentPnL !== 0 ? calcStartBal + (dayPnL || 0) + adjustmentPnL : null;
             const actPct = dayPnL !== null ? (dayPnL / calcStartBal) * 100 : null;
             const variance = dayPnL !== null ? dayPnL - projGain : null;
 
